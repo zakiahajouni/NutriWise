@@ -76,7 +76,7 @@ export default function SuggestedRecipeDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-gray-600">Chargement...</div>
+        <div className="text-xl text-gray-600">Loading...</div>
       </div>
     )
   }
@@ -85,12 +85,12 @@ export default function SuggestedRecipeDetailPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Recette non trouvée</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Recipe Not Found</h2>
           <Link
             href="/dashboard"
             className="text-primary-600 hover:text-primary-700"
           >
-            Retour au tableau de bord
+            Back to Dashboard
           </Link>
         </div>
       </div>
@@ -106,13 +106,13 @@ export default function SuggestedRecipeDetailPage() {
           className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6"
         >
           <ArrowLeft size={20} className="mr-2" />
-          Retour aux suggestions
+          Back to Suggestions
         </Link>
 
         {/* Recipe Card */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-8 text-white">
+          <div className="bg-gradient-to-r from-primary-600 to-primary-700 p-8 text-white">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
                 <div className="flex items-center space-x-3 mb-3">
@@ -121,7 +121,7 @@ export default function SuggestedRecipeDetailPage() {
                       ? 'bg-pink-200 text-pink-900' 
                       : 'bg-blue-200 text-blue-900'
                   }`}>
-                    {recipe.type === 'sweet' ? 'Dessert' : 'Plat'}
+                    {recipe.type === 'sweet' ? 'Dessert' : 'Main Course'}
                   </span>
                   {recipe.isHealthy && (
                     <span className="px-3 py-1 bg-green-200 text-green-900 rounded-full text-sm font-semibold">
@@ -142,21 +142,21 @@ export default function SuggestedRecipeDetailPage() {
               <div className="flex items-center space-x-2">
                 <Clock size={20} />
                 <div>
-                  <div className="text-sm opacity-90">Temps total</div>
+                  <div className="text-sm opacity-90">Total Time</div>
                   <div className="font-semibold">{recipe.prepTime + recipe.cookTime} min</div>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
                 <ChefHat size={20} />
                 <div>
-                  <div className="text-sm opacity-90">Préparation</div>
+                  <div className="text-sm opacity-90">Prep Time</div>
                   <div className="font-semibold">{recipe.prepTime} min</div>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
                 <Users size={20} />
                 <div>
-                  <div className="text-sm opacity-90">Portions</div>
+                  <div className="text-sm opacity-90">Servings</div>
                   <div className="font-semibold">{recipe.servings}</div>
                 </div>
               </div>
@@ -173,9 +173,9 @@ export default function SuggestedRecipeDetailPage() {
           {/* Content */}
           <div className="p-8">
             {/* Match Reason */}
-            <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
-              <p className="text-sm text-purple-800 font-medium">
-                💡 Pourquoi cette recette vous est suggérée : {recipe.matchReason}
+            <div className="mb-6 p-4 bg-primary-50 rounded-lg border border-primary-200">
+              <p className="text-sm text-primary-800 font-medium">
+                💡 Why this recipe is suggested for you: {recipe.matchReason}
               </p>
             </div>
 
@@ -183,7 +183,7 @@ export default function SuggestedRecipeDetailPage() {
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
                 <UtensilsCrossed size={24} className="mr-2" />
-                Ingrédients
+                Ingredients
               </h2>
               <ul className="space-y-2">
                 {recipe.ingredients.map((ingredient, index) => (
@@ -201,7 +201,7 @@ export default function SuggestedRecipeDetailPage() {
               <ol className="space-y-4">
                 {recipe.steps.map((step, index) => (
                   <li key={index} className="flex items-start">
-                    <span className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full flex items-center justify-center font-semibold mr-4">
+                    <span className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-full flex items-center justify-center font-semibold mr-4">
                       {index + 1}
                     </span>
                     <span className="text-gray-700 pt-1">{step}</span>
@@ -214,15 +214,15 @@ export default function SuggestedRecipeDetailPage() {
             <div className="mt-8 pt-8 border-t border-gray-200 flex space-x-4">
               <Link
                 href="/dashboard/recipes/generate"
-                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors text-center font-medium"
+                className="flex-1 bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-3 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-colors text-center font-medium"
               >
-                Générer une variante personnalisée
+                Generate Personalized Variant
               </Link>
               <Link
                 href="/dashboard"
                 className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Retour
+                Back
               </Link>
             </div>
           </div>

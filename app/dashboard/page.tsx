@@ -191,33 +191,33 @@ export default function DashboardPage() {
             {profile && (
               <div>
                 <div className="flex items-center space-x-3 mb-6">
-                  <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
+                  <div className="p-2 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg">
                     <Brain className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Recettes suggérées pour vous</h2>
-                    <p className="text-sm text-gray-600">Basées sur votre profil et vos préférences</p>
+                    <h2 className="text-2xl font-bold text-gray-900">Suggested Recipes for You</h2>
+                    <p className="text-sm text-gray-600">Based on your profile and preferences</p>
                   </div>
                 </div>
 
                 {loadingSuggestions ? (
                   <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-                    <div className="text-gray-600">Chargement des suggestions...</div>
+                    <div className="text-gray-600">Loading suggestions...</div>
                   </div>
                 ) : suggestions.length === 0 ? (
                   <div className="bg-white rounded-xl shadow-lg p-8 text-center">
                     <TrendingUp className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      Complétez votre profil
+                      Complete Your Profile
                     </h3>
                     <p className="text-gray-600 mb-4">
-                      Ajoutez vos préférences alimentaires pour recevoir des suggestions personnalisées
+                      Add your dietary preferences to receive personalized suggestions
                     </p>
                     <Link
                       href="/dashboard/profile/edit"
                       className="inline-block bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors"
                     >
-                      Compléter mon profil
+                      Complete My Profile
                     </Link>
                   </div>
                 ) : (
@@ -225,7 +225,7 @@ export default function DashboardPage() {
                     {suggestions.map((suggestion, index) => (
                       <div
                         key={index}
-                        className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow border-2 border-purple-100"
+                        className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow border-2 border-primary-100"
                       >
                         <div className="p-6">
                           <div className="flex items-start justify-between mb-3">
@@ -234,7 +234,7 @@ export default function DashboardPage() {
                                 ? 'bg-pink-100 text-pink-800' 
                                 : 'bg-blue-100 text-blue-800'
                             }`}>
-                              {suggestion.type === 'sweet' ? 'Dessert' : 'Plat'}
+                              {suggestion.type === 'sweet' ? 'Dessert' : 'Main Course'}
                             </span>
                             {suggestion.isHealthy && (
                               <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
@@ -248,18 +248,18 @@ export default function DashboardPage() {
                           </p>
                           <div className="flex items-center text-xs text-gray-500 mb-3">
                             <span className="mr-4">{suggestion.prepTime + suggestion.cookTime} min</span>
-                            <span className="mr-4">{suggestion.servings} portions</span>
+                            <span className="mr-4">{suggestion.servings} servings</span>
                             <span>{suggestion.calories} kcal</span>
                           </div>
                           <div className="mb-3">
-                            <p className="text-xs text-purple-600 font-medium flex items-center">
+                            <p className="text-xs text-primary-600 font-medium flex items-center">
                               <Brain size={12} className="mr-1" />
                               {suggestion.matchReason}
                             </p>
                           </div>
                           <div className="mb-3">
                             <p className="text-xs text-gray-500 mb-1">Cuisine: {suggestion.cuisineType}</p>
-                            <p className="text-xs text-gray-500">Ingrédients: {suggestion.ingredients.slice(0, 3).join(', ')}...</p>
+                            <p className="text-xs text-gray-500">Ingredients: {suggestion.ingredients.slice(0, 3).join(', ')}...</p>
                           </div>
                           <button
                             onClick={() => {
@@ -267,9 +267,9 @@ export default function DashboardPage() {
                               sessionStorage.setItem('suggestedRecipe', JSON.stringify(suggestion))
                               router.push(`/dashboard/recipes/suggested/${suggestions.indexOf(suggestion)}`)
                             }}
-                            className="block w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors text-center text-sm"
+                            className="block w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white px-4 py-2 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-colors text-center text-sm"
                           >
-                            Voir les détails
+                            View Details
                           </button>
                         </div>
                       </div>
@@ -284,14 +284,14 @@ export default function DashboardPage() {
               <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center space-x-3">
                   <History className="w-6 h-6 text-gray-700" />
-                  <h2 className="text-2xl font-bold text-gray-900">Historique des recettes</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">Recipe History</h2>
                 </div>
                 <Link
                   href="/dashboard/recipes/generate"
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors flex items-center space-x-2 shadow-lg hover:shadow-xl"
+                  className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-3 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-colors flex items-center space-x-2 shadow-lg hover:shadow-xl"
                 >
                   <Sparkles size={20} />
-                  <span>Générer une recette</span>
+                  <span>Generate Recipe</span>
                 </Link>
               </div>
 
@@ -306,7 +306,7 @@ export default function DashboardPage() {
                 </p>
                 <Link
                   href="/dashboard/recipes/generate"
-                  className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors flex items-center space-x-2 mx-auto w-fit"
+                  className="inline-block bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-3 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-colors flex items-center space-x-2 mx-auto w-fit"
                 >
                   <Sparkles size={20} />
                   <span>Generate Recipe</span>

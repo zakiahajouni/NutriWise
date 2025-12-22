@@ -155,7 +155,7 @@ export async function saveModelToDB(
   modelName: string,
   modelVersion: string,
   metadata: any
-): Promise<void> {
+): Promise<number> {
   // Serialize model
   const modelJson = await model.save('memory://')
   
@@ -164,7 +164,7 @@ export async function saveModelToDB(
 
   const db = (await import('@/lib/db')).default
 
-  await db.execute(
+  const [result] = await db.execute(
     `INSERT INTO ml_models 
      (model_name, model_type, model_version, model_data, model_metadata, training_data_size, is_active)
      VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -175,14 +175,16 @@ export async function saveModelToDB(
      updated_at = CURRENT_TIMESTAMP`,
     [
       modelName,
-      'recommendation',
+      metadata.modelType || 'recommendation',
       modelVersion,
       modelBuffer,
       JSON.stringify(metadata),
-      metadata.trainingDataSize || 0,
-      false // Ne pas activer automatiquement
+      metadata.trainingDataSize || metadata.training_data_size || 0,
+      false // Don't activate automatically
     ]
-  )
+  ) as any[]
+
+  return result.insertId || result[0]?.insertId || 0
 }
 
 /**

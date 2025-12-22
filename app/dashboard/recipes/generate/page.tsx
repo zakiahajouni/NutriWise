@@ -331,7 +331,7 @@ export default function GenerateRecipePage() {
                   {generatedRecipe.estimatedPrice && (
                     <div>
                       <span className="font-medium text-gray-700">Estimated Price:</span>{' '}
-                      <span className="text-gray-900">${generatedRecipe.estimatedPrice.toFixed(2)}</span>
+                      <span className="text-gray-900">{generatedRecipe.estimatedPrice.toFixed(2)} TND</span>
                     </div>
                   )}
                 </div>
@@ -589,7 +589,7 @@ export default function GenerateRecipePage() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Budget ($) *
+                  Budget (TND) *
                 </label>
                 <input
                   type="number"
@@ -597,7 +597,7 @@ export default function GenerateRecipePage() {
                   step="0.01"
                   value={formData.budget}
                   onChange={(e) => updateFormData('budget', e.target.value)}
-                  placeholder="Ex: 15.50"
+                  placeholder="Ex: 50.00"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   required
                 />

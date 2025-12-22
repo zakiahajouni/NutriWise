@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Edit, History, User, UtensilsCrossed, Calendar, Sparkles } from 'lucide-react'
+import { Edit, History, User, UtensilsCrossed, Calendar, Sparkles, Brain, TrendingUp } from 'lucide-react'
 
 interface Recipe {
   id: number
@@ -14,6 +14,23 @@ interface Recipe {
   servings: number
   calories: number
   created_at: string
+}
+
+interface SuggestedRecipe {
+  name: string
+  description: string
+  ingredients: string[]
+  steps: string[]
+  prepTime: number
+  cookTime: number
+  servings: number
+  calories: number
+  estimatedPrice: number
+  cuisineType: string
+  recipeType: 'sweet' | 'savory'
+  isHealthy: boolean
+  type: 'sweet' | 'savory'
+  matchReason: string
 }
 
 interface UserProfile {
@@ -32,8 +49,10 @@ interface UserProfile {
 
 export default function DashboardPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([])
+  const [suggestions, setSuggestions] = useState<SuggestedRecipe[]>([])
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadingSuggestions, setLoadingSuggestions] = useState(true)
   const [activeTab, setActiveTab] = useState<'recipes' | 'profile'>('recipes')
   const router = useRouter()
 
@@ -46,6 +65,7 @@ export default function DashboardPage() {
 
     fetchUserData()
     fetchRecipes()
+    fetchSuggestions()
   }, [router])
 
   const fetchUserData = async () => {
@@ -77,6 +97,23 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error('Error fetching recipes:', error)
+    }
+  }
+
+  const fetchSuggestions = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/ml/suggest-recipes', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json()
+      if (data.success) {
+        setSuggestions(data.suggestions || [])
+      }
+    } catch (error) {
+      console.error('Error fetching suggestions:', error)
+    } finally {
+      setLoadingSuggestions(false)
     }
   }
 
@@ -149,17 +186,114 @@ export default function DashboardPage() {
 
         {/* Recipes Tab */}
         {activeTab === 'recipes' && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Recipe History</h2>
-              <Link
-                href="/dashboard/recipes/generate"
-                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors flex items-center space-x-2 shadow-lg hover:shadow-xl"
-              >
-                <Sparkles size={20} />
-                <span>Generate Recipe</span>
-              </Link>
-            </div>
+          <div className="space-y-8">
+            {/* Recipe Suggestions Based on Profile */}
+            {profile && (
+              <div>
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
+                    <Brain className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Recettes suggérées pour vous</h2>
+                    <p className="text-sm text-gray-600">Basées sur votre profil et vos préférences</p>
+                  </div>
+                </div>
+
+                {loadingSuggestions ? (
+                  <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+                    <div className="text-gray-600">Chargement des suggestions...</div>
+                  </div>
+                ) : suggestions.length === 0 ? (
+                  <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+                    <TrendingUp className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      Complétez votre profil
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Ajoutez vos préférences alimentaires pour recevoir des suggestions personnalisées
+                    </p>
+                    <Link
+                      href="/dashboard/profile/edit"
+                      className="inline-block bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+                    >
+                      Compléter mon profil
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    {suggestions.map((suggestion, index) => (
+                      <div
+                        key={index}
+                        className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow border-2 border-purple-100"
+                      >
+                        <div className="p-6">
+                          <div className="flex items-start justify-between mb-3">
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              suggestion.type === 'sweet' 
+                                ? 'bg-pink-100 text-pink-800' 
+                                : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {suggestion.type === 'sweet' ? 'Dessert' : 'Plat'}
+                            </span>
+                            {suggestion.isHealthy && (
+                              <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
+                                Healthy
+                              </span>
+                            )}
+                          </div>
+                          <h3 className="text-xl font-semibold text-gray-900 mb-2">{suggestion.name}</h3>
+                          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                            {suggestion.description}
+                          </p>
+                          <div className="flex items-center text-xs text-gray-500 mb-3">
+                            <span className="mr-4">{suggestion.prepTime + suggestion.cookTime} min</span>
+                            <span className="mr-4">{suggestion.servings} portions</span>
+                            <span>{suggestion.calories} kcal</span>
+                          </div>
+                          <div className="mb-3">
+                            <p className="text-xs text-purple-600 font-medium flex items-center">
+                              <Brain size={12} className="mr-1" />
+                              {suggestion.matchReason}
+                            </p>
+                          </div>
+                          <div className="mb-3">
+                            <p className="text-xs text-gray-500 mb-1">Cuisine: {suggestion.cuisineType}</p>
+                            <p className="text-xs text-gray-500">Ingrédients: {suggestion.ingredients.slice(0, 3).join(', ')}...</p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              // Store recipe in sessionStorage and navigate
+                              sessionStorage.setItem('suggestedRecipe', JSON.stringify(suggestion))
+                              router.push(`/dashboard/recipes/suggested/${suggestions.indexOf(suggestion)}`)
+                            }}
+                            className="block w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors text-center text-sm"
+                          >
+                            Voir les détails
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Recipe History */}
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <div className="flex items-center space-x-3">
+                  <History className="w-6 h-6 text-gray-700" />
+                  <h2 className="text-2xl font-bold text-gray-900">Historique des recettes</h2>
+                </div>
+                <Link
+                  href="/dashboard/recipes/generate"
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors flex items-center space-x-2 shadow-lg hover:shadow-xl"
+                >
+                  <Sparkles size={20} />
+                  <span>Générer une recette</span>
+                </Link>
+              </div>
 
             {recipes.length === 0 ? (
               <div className="bg-white rounded-xl shadow-lg p-12 text-center">
@@ -221,6 +355,7 @@ export default function DashboardPage() {
                 ))}
               </div>
             )}
+            </div>
           </div>
         )}
 

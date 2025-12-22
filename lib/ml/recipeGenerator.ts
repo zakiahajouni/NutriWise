@@ -28,6 +28,7 @@ interface RecipeRequest {
   additionalInfo: string
   cuisineType: string
   isHealthy: boolean
+  dietaryPreference?: string // 'vegetarian', 'vegan', 'normal', etc.
 }
 
 // Recipe database (dynamic, can be loaded from DB)
@@ -50,7 +51,7 @@ const RECIPE_TEMPLATES: Recipe[] = [
     cookTime: 15,
     servings: 4,
     calories: 520,
-    estimatedPrice: 8.50,
+    estimatedPrice: 26.35, 
     cuisineType: 'Italian',
     recipeType: 'savory',
     isHealthy: false
@@ -71,7 +72,7 @@ const RECIPE_TEMPLATES: Recipe[] = [
     cookTime: 10,
     servings: 2,
     calories: 380,
-    estimatedPrice: 12.00,
+    estimatedPrice: 37.20, 
     cuisineType: 'American',
     recipeType: 'savory',
     isHealthy: true
@@ -92,7 +93,7 @@ const RECIPE_TEMPLATES: Recipe[] = [
     cookTime: 60,
     servings: 6,
     calories: 450,
-    estimatedPrice: 15.00,
+    estimatedPrice: 46.50, // ~15.00 USD * 3.1 TND
     cuisineType: 'Tunisian',
     recipeType: 'savory',
     isHealthy: true
@@ -113,8 +114,70 @@ const RECIPE_TEMPLATES: Recipe[] = [
     cookTime: 25,
     servings: 4,
     calories: 420,
-    estimatedPrice: 10.00,
+    estimatedPrice: 31.00, 
     cuisineType: 'Italian',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  {
+    name: 'Vegetarian Couscous',
+    description: 'Traditional Tunisian couscous with vegetables (vegetarian version)',
+    ingredients: ['couscous', 'zucchini', 'carrots', 'chickpeas', 'potatoes', 'harissa', 'olive oil'],
+    steps: [
+      'Prepare the couscous by moistening it and letting it swell',
+      'Cut all vegetables into pieces',
+      'Cook the vegetables with spices and olive oil',
+      'Cook the chickpeas separately',
+      'Serve the couscous with the vegetables',
+      'Accompany with harissa'
+    ],
+    prepTime: 20,
+    cookTime: 45,
+    servings: 6,
+    calories: 380,
+    estimatedPrice: 28.50,
+    cuisineType: 'Tunisian',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  {
+    name: 'Vegetarian Caesar Salad',
+    description: 'Fresh and crispy salad without meat',
+    ingredients: ['lettuce', 'croutons', 'parmesan', 'caesar dressing', 'cherry tomatoes'],
+    steps: [
+      'Wash and cut the lettuce',
+      'Prepare the caesar dressing',
+      'Mix the lettuce with the dressing',
+      'Add the croutons, cherry tomatoes and parmesan',
+      'Serve immediately'
+    ],
+    prepTime: 10,
+    cookTime: 0,
+    servings: 2,
+    calories: 280,
+    estimatedPrice: 24.80,
+    cuisineType: 'American',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  {
+    name: 'Vegetable Stir Fry',
+    description: 'Colorful mix of fresh vegetables',
+    ingredients: ['bell peppers', 'broccoli', 'carrots', 'snow peas', 'soy sauce', 'ginger', 'garlic', 'olive oil'],
+    steps: [
+      'Cut all vegetables into bite-sized pieces',
+      'Heat olive oil in a wok or large pan',
+      'Add ginger and garlic, stir for 30 seconds',
+      'Add vegetables and stir-fry for 5-7 minutes',
+      'Add soy sauce and continue cooking for 2 minutes',
+      'Serve hot with rice'
+    ],
+    prepTime: 15,
+    cookTime: 10,
+    servings: 4,
+    calories: 180,
+    estimatedPrice: 22.00,
+    cuisineType: 'Asian',
     recipeType: 'savory',
     isHealthy: true
   },
@@ -136,7 +199,7 @@ const RECIPE_TEMPLATES: Recipe[] = [
     cookTime: 0,
     servings: 8,
     calories: 320,
-    estimatedPrice: 12.00,
+    estimatedPrice: 37.20, 
     cuisineType: 'Italian',
     recipeType: 'sweet',
     isHealthy: false
@@ -157,7 +220,7 @@ const RECIPE_TEMPLATES: Recipe[] = [
     cookTime: 25,
     servings: 8,
     calories: 380,
-    estimatedPrice: 8.00,
+    estimatedPrice: 24.80, // ~8.00 USD * 3.1 TND
     cuisineType: 'French',
     recipeType: 'sweet',
     isHealthy: false
@@ -177,7 +240,7 @@ const RECIPE_TEMPLATES: Recipe[] = [
     cookTime: 0,
     servings: 4,
     calories: 120,
-    estimatedPrice: 6.00,
+    estimatedPrice: 18.60, // ~6.00 USD * 3.1 TND
     cuisineType: 'Mediterranean',
     recipeType: 'sweet',
     isHealthy: true
@@ -223,6 +286,85 @@ function containsAllergens(recipe: Recipe, allergies: string[]): boolean {
     recipeIngredients.includes(allergy) || 
     recipeIngredients.includes(allergy.replace(' ', ''))
   )
+}
+
+/**
+ * Liste des ingrédients non-végétariens/végans
+ */
+const MEAT_INGREDIENTS = [
+  'chicken', 'poulet', 'beef', 'boeuf', 'pork', 'porc', 'lamb', 'agneau', 
+  'meat', 'viande', 'bacon', 'ham', 'jambon', 'sausage', 'saucisse',
+  'turkey', 'dinde', 'duck', 'canard', 'veal', 'veau', 'rabbit', 'lapin'
+]
+
+const FISH_INGREDIENTS = [
+  'fish', 'poisson', 'salmon', 'saumon', 'tuna', 'thon', 'sardine', 
+  'shrimp', 'crevette', 'crab', 'crabe', 'lobster', 'homard', 
+  'mussel', 'moule', 'oyster', 'huître', 'seafood', 'fruits de mer'
+]
+
+const DAIRY_INGREDIENTS = [
+  'milk', 'lait', 'cheese', 'fromage', 'butter', 'beurre', 
+  'cream', 'crème', 'yogurt', 'yaourt', 'whey'
+]
+
+const EGG_INGREDIENTS = ['egg', 'eggs', 'œuf', 'œufs', 'egg white', 'egg yolk']
+
+/**
+ * Vérifie si une recette contient de la viande
+ */
+function containsMeat(recipe: Recipe): boolean {
+  const recipeIngredients = recipe.ingredients.map(normalizeIngredient).join(' ')
+  return MEAT_INGREDIENTS.some(meat => recipeIngredients.includes(meat))
+}
+
+/**
+ * Vérifie si une recette contient du poisson
+ */
+function containsFish(recipe: Recipe): boolean {
+  const recipeIngredients = recipe.ingredients.map(normalizeIngredient).join(' ')
+  return FISH_INGREDIENTS.some(fish => recipeIngredients.includes(fish))
+}
+
+/**
+ * Vérifie si une recette contient des produits laitiers
+ */
+function containsDairy(recipe: Recipe): boolean {
+  const recipeIngredients = recipe.ingredients.map(normalizeIngredient).join(' ')
+  return DAIRY_INGREDIENTS.some(dairy => recipeIngredients.includes(dairy))
+}
+
+/**
+ * Vérifie si une recette contient des œufs
+ */
+function containsEggs(recipe: Recipe): boolean {
+  const recipeIngredients = recipe.ingredients.map(normalizeIngredient).join(' ')
+  return EGG_INGREDIENTS.some(egg => recipeIngredients.includes(egg))
+}
+
+/**
+ * Vérifie si une recette respecte les préférences alimentaires
+ */
+function matchesDietaryPreference(recipe: Recipe, dietaryPreference?: string): boolean {
+  if (!dietaryPreference || dietaryPreference === 'normal' || dietaryPreference === 'healthy') {
+    return true // Pas de restriction
+  }
+  
+  if (dietaryPreference === 'vegan') {
+    // Végans : pas de viande, poisson, produits laitiers, œufs
+    return !containsMeat(recipe) && 
+           !containsFish(recipe) && 
+           !containsDairy(recipe) && 
+           !containsEggs(recipe)
+  }
+  
+  if (dietaryPreference === 'vegetarian') {
+    // Végétariens : pas de viande ni poisson, mais produits laitiers et œufs OK
+    return !containsMeat(recipe) && !containsFish(recipe)
+  }
+  
+  // Pour les autres préférences (keto, paleo), on accepte tout pour l'instant
+  return true
 }
 
 /**
@@ -284,47 +426,59 @@ export function findMissingIngredients(
  * Estime le prix des ingrédients manquants
  */
 export function estimateMissingPrice(missingIngredients: string[]): number {
-  // Average estimated prices per ingredient (in production, load from DB)
+  // Average estimated prices per ingredient in Tunisian Dinar (TND)
+  // Prices are realistic for Tunisian market
   const priceMap: Record<string, number> = {
-    'spaghetti': 1.50,
-    'pasta': 1.50,
-    'bacon': 3.00,
-    'eggs': 2.50,
-    'parmesan': 4.00,
-    'chicken': 5.00,
-    'lettuce': 1.50,
-    'croutons': 2.00,
-    'mushrooms': 3.00,
-    'rice': 2.00,
-    'arborio rice': 2.00,
-    'chocolate': 3.50,
-    'butter': 2.50,
-    'flour': 1.00,
-    'sugar': 1.50,
-    'mascarpone': 4.00,
-    'coffee': 2.00,
-    'couscous': 2.00,
-    'lamb meat': 8.00,
-    'meat': 8.00,
-    'vegetables': 3.00,
-    'zucchini': 2.00,
-    'carrots': 1.50,
-    'chickpeas': 2.00,
-    'harissa': 3.00,
-    'black pepper': 1.00,
-    'onion': 1.00,
-    'white wine': 5.00,
-    'broth': 2.00,
-    'ladyfingers': 3.00,
-    'cocoa': 2.00,
-    'baking powder': 1.00,
-    'apples': 2.00,
-    'bananas': 1.50,
-    'strawberries': 3.00,
-    'oranges': 2.00,
-    'honey': 4.00,
-    'mint': 1.00,
-    'caesar dressing': 3.00,
+    'spaghetti': 4.50,
+    'pasta': 4.50,
+    'bacon': 9.00,
+    'eggs': 7.50,
+    'parmesan': 12.00,
+    'chicken': 15.00,
+    'lettuce': 4.50,
+    'croutons': 6.00,
+    'mushrooms': 9.00,
+    'rice': 6.00,
+    'arborio rice': 6.00,
+    'chocolate': 10.50,
+    'butter': 7.50,
+    'flour': 3.00,
+    'sugar': 4.50,
+    'mascarpone': 12.00,
+    'coffee': 6.00,
+    'couscous': 6.00,
+    'lamb meat': 24.00,
+    'meat': 24.00,
+    'vegetables': 9.00,
+    'zucchini': 6.00,
+    'carrots': 4.50,
+    'chickpeas': 6.00,
+    'harissa': 9.00,
+    'black pepper': 3.00,
+    'onion': 3.00,
+    'white wine': 15.00,
+    'broth': 6.00,
+    'ladyfingers': 9.00,
+    'cocoa': 6.00,
+    'baking powder': 3.00,
+    'apples': 6.00,
+    'bananas': 4.50,
+    'strawberries': 9.00,
+    'oranges': 6.00,
+    'honey': 12.00,
+    'mint': 3.00,
+    'caesar dressing': 9.00,
+    'tomatoes': 4.50,
+    'garlic': 3.00,
+    'olive oil': 8.00,
+    'basil': 3.00,
+    'mozzarella': 10.00,
+    'potatoes': 3.00,
+    'bell peppers': 5.00,
+    'fish': 18.00,
+    'shrimp': 25.00,
+    'beef': 22.00,
+    'pork': 20.00,
   }
   
   let total = 0
@@ -334,7 +488,7 @@ export function estimateMissingPrice(missingIngredients: string[]): number {
     const match = Object.keys(priceMap).find(key => 
       normalized.includes(key) || key.includes(normalized)
     )
-    total += match ? priceMap[match] : 2.00 // Prix par défaut
+    total += match ? priceMap[match] : 6.00 // Prix par défaut en TND
   }
   
   return total
@@ -359,6 +513,9 @@ export function generateRecipe(request: RecipeRequest): Recipe {
     // Don't include recipes with allergens
     if (containsAllergens(recipe, request.allergies)) return false
     
+    // CRITICAL: Respect dietary preferences (vegetarian, vegan, etc.)
+    if (!matchesDietaryPreference(recipe, request.dietaryPreference)) return false
+    
     return true
   })
   
@@ -367,13 +524,19 @@ export function generateRecipe(request: RecipeRequest): Recipe {
     candidates = RECIPE_TEMPLATES.filter(recipe => {
       if (recipe.recipeType !== request.recipeType) return false
       if (containsAllergens(recipe, request.allergies)) return false
+      if (!matchesDietaryPreference(recipe, request.dietaryPreference)) return false
       return true
     })
   }
   
-  // If still no recipe, use all recipes of the correct type
+  // If still no recipe, use all recipes of the correct type (but still respect dietary preferences)
   if (candidates.length === 0) {
-    candidates = RECIPE_TEMPLATES.filter(r => r.recipeType === request.recipeType)
+    candidates = RECIPE_TEMPLATES.filter(r => {
+      if (r.recipeType !== request.recipeType) return false
+      if (containsAllergens(r, request.allergies)) return false
+      if (!matchesDietaryPreference(r, request.dietaryPreference)) return false
+      return true
+    })
   }
   
   // Calculate scores for each recipe

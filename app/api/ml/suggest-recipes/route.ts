@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
           dietaryPreference: dietaryPreference // CRITICAL: Pass dietary preference
         }
         
-        savoryRecipe = generateRecipe(savoryRequest)
+        savoryRecipe = await generateRecipe(savoryRequest)
         attempts++
         
         // If we've tried 5 times and still get duplicates, break
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
       dietaryPreference: dietaryPreference // CRITICAL: Pass dietary preference
     }
     
-    const sweetRecipe = generateRecipe(sweetRequest)
+    const sweetRecipe = await generateRecipe(sweetRequest)
     if (!usedRecipeNames.has(sweetRecipe.name)) {
       suggestions.push({
         ...sweetRecipe,

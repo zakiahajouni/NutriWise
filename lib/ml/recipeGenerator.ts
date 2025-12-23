@@ -255,22 +255,40 @@ function normalizeIngredient(ingredient: string): string {
 }
 
 /**
- * Calcule la similarité cosine entre deux listes d'ingrédients
+ * Calcule la similarité améliorée entre deux listes d'ingrédients
+ * Utilise une approche plus intelligente avec correspondance partielle
  */
 export function cosineSimilarity(ingredients1: string[], ingredients2: string[]): number {
   const normalized1 = ingredients1.map(normalizeIngredient)
   const normalized2 = ingredients2.map(normalizeIngredient)
   
+  // Correspondance exacte
   const set1 = new Set(normalized1)
   const set2 = new Set(normalized2)
+  const exactMatches = new Set(Array.from(set1).filter(x => set2.has(x)))
   
-  const intersection = new Set(Array.from(set1).filter(x => set2.has(x)))
+  // Correspondance partielle (un ingrédient contient l'autre)
+  let partialMatches = 0
+  for (const ing1 of normalized1) {
+    for (const ing2 of normalized2) {
+      // Vérifier si un ingrédient contient l'autre (ex: "chicken" et "chicken breast")
+      if (ing1.includes(ing2) || ing2.includes(ing1)) {
+        if (!exactMatches.has(ing1) && !exactMatches.has(ing2)) {
+          partialMatches++
+        }
+      }
+    }
+  }
+  
   const union = new Set([...Array.from(set1), ...Array.from(set2)])
   
   if (union.size === 0) return 0
   
-  // Jaccard similarity (simplifié pour la similarité d'ingrédients)
-  return intersection.size / union.size
+  // Score combiné : correspondances exactes + correspondances partielles (avec poids réduit)
+  const exactScore = exactMatches.size / union.size
+  const partialScore = (partialMatches * 0.5) / union.size // Poids réduit pour les correspondances partielles
+  
+  return Math.min(1, exactScore + partialScore)
 }
 
 /**
@@ -368,45 +386,67 @@ function matchesDietaryPreference(recipe: Recipe, dietaryPreference?: string): b
 }
 
 /**
- * Calculates a recipe score based on multiple criteria
+ * Calculates an improved recipe score based on multiple criteria
+ * Système de scoring amélioré pour réduire les erreurs
  */
 function calculateRecipeScore(
   recipe: Recipe,
   request: RecipeRequest,
   similarity: number
 ): number {
-  let score = similarity * 0.4 // 40% based on ingredient similarity
+  // Score de base basé sur la similarité d'ingrédients (50% - plus important)
+  let score = similarity * 0.5
   
-  // Bonus for matching recipe type (20%)
-  if (recipe.recipeType === request.recipeType) {
-    score += 0.2
+  // Vérifier que le type de recette correspond (OBLIGATOIRE - pénalité forte si non)
+  if (recipe.recipeType !== request.recipeType) {
+    score *= 0.1 // Réduction drastique si le type ne correspond pas
+  } else {
+    score += 0.2 // Bonus si correspond
   }
   
-  // Bonus for matching cuisine type (15%)
-  if (recipe.cuisineType.toLowerCase() === request.cuisineType.toLowerCase()) {
-    score += 0.15
+  // Bonus pour le type de cuisine (15%)
+  if (request.cuisineType && request.cuisineType !== 'Other') {
+    if (recipe.cuisineType.toLowerCase() === request.cuisineType.toLowerCase()) {
+      score += 0.15
+    } else {
+      score *= 0.7 // Pénalité si cuisine ne correspond pas
+    }
   }
   
-  // Bonus for health preference (15%)
+  // Bonus pour préférence santé (10%)
   if (recipe.isHealthy === request.isHealthy) {
-    score += 0.15
-  }
-  
-  // Penalty if recipe contains allergens (10%)
-  if (containsAllergens(recipe, request.allergies)) {
-    score -= 0.1
-  }
-  
-  // Bonus if price is within budget (if applicable)
-  if (request.canPurchase && request.budget && recipe.estimatedPrice <= request.budget) {
     score += 0.1
+  } else {
+    score *= 0.9 // Légère pénalité
+  }
+  
+  // Pénalité FORTE si la recette contient des allergènes (réduction de 50%)
+  if (containsAllergens(recipe, request.allergies)) {
+    score *= 0.5
+  }
+  
+  // Bonus si prix dans le budget (5%)
+  if (request.canPurchase && request.budget) {
+    const missing = findMissingIngredients(recipe, request.availableIngredients)
+    const missingPrice = estimateMissingPrice(missing)
+    if (missingPrice <= request.budget) {
+      score += 0.05
+    } else {
+      score *= 0.8 // Pénalité si dépasse le budget
+    }
+  }
+  
+  // Bonus si l'utilisateur a tous les ingrédients (5%)
+  const missing = findMissingIngredients(recipe, request.availableIngredients)
+  if (missing.length === 0) {
+    score += 0.05
   }
   
   return Math.max(0, Math.min(1, score)) // Normalize between 0 and 1
 }
 
 /**
- * Identifie les ingrédients manquants
+ * Identifie les ingrédients manquants avec correspondance améliorée
  */
 export function findMissingIngredients(
   recipe: Recipe,
@@ -415,11 +455,20 @@ export function findMissingIngredients(
   const normalizedAvailable = availableIngredients.map(normalizeIngredient)
   const normalizedRecipe = recipe.ingredients.map(normalizeIngredient)
   
-  return normalizedRecipe.filter(ing => 
-    !normalizedAvailable.some(avail => 
-      avail.includes(ing) || ing.includes(avail)
-    )
-  )
+  return normalizedRecipe.filter(recipeIng => {
+    // Vérifier correspondance exacte
+    if (normalizedAvailable.includes(recipeIng)) {
+      return false // Ingredient trouvé
+    }
+    
+    // Vérifier correspondance partielle (un ingrédient contient l'autre)
+    const hasMatch = normalizedAvailable.some(availIng => {
+      // Correspondance bidirectionnelle
+      return recipeIng.includes(availIng) || availIng.includes(recipeIng)
+    })
+    
+    return !hasMatch // Retourner true si pas de correspondance = ingrédient manquant
+  })
 }
 
 /**
@@ -496,8 +545,172 @@ export function estimateMissingPrice(missingIngredients: string[]): number {
 
 /**
  * Generates a personalized recipe based on criteria
+ * Now uses database recipes first, falls back to hardcoded templates if DB is empty
  */
-export function generateRecipe(request: RecipeRequest): Recipe {
+export async function generateRecipe(request: RecipeRequest): Promise<Recipe> {
+  // Try to load from database first
+  let candidates: Recipe[] = []
+  
+  try {
+    const { loadRecipeDatasetFiltered } = await import('./datasetLoader')
+    const dbRecipes = await loadRecipeDatasetFiltered({
+      recipeType: request.recipeType,
+      cuisineType: request.cuisineType !== 'Other' ? request.cuisineType : undefined,
+      isHealthy: request.isHealthy,
+    })
+    
+    // Convert RecipeTemplate to Recipe format
+    candidates = dbRecipes.map(rt => ({
+      name: rt.name,
+      description: rt.description,
+      ingredients: rt.ingredients,
+      steps: rt.steps,
+      prepTime: rt.prepTime,
+      cookTime: rt.cookTime,
+      servings: rt.servings,
+      calories: rt.calories,
+      estimatedPrice: rt.estimatedPrice,
+      cuisineType: rt.cuisineType,
+      recipeType: rt.recipeType,
+      isHealthy: rt.isHealthy,
+    }))
+  } catch (error) {
+    console.log('Could not load from database, using templates:', error)
+  }
+  
+  // Fallback to hardcoded templates if database is empty
+  if (candidates.length === 0) {
+    candidates = RECIPE_TEMPLATES
+  }
+  
+  // Filter recipes according to basic criteria
+  let filteredCandidates = candidates.filter(recipe => {
+    // Recipe type must match
+    if (recipe.recipeType !== request.recipeType) return false
+    
+    // Cuisine type must match (high priority)
+    if (request.cuisineType && request.cuisineType !== 'Other') {
+      if (recipe.cuisineType.toLowerCase() !== request.cuisineType.toLowerCase()) {
+        return false
+      }
+    }
+    
+    // Don't include recipes with allergens
+    if (containsAllergens(recipe, request.allergies)) return false
+    
+    // CRITICAL: Respect dietary preferences (vegetarian, vegan, etc.)
+    if (!matchesDietaryPreference(recipe, request.dietaryPreference)) return false
+    
+    return true
+  })
+  
+  // If no recipe matches cuisine type, try without cuisine filter
+  if (filteredCandidates.length === 0 && request.cuisineType && request.cuisineType !== 'Other') {
+    filteredCandidates = candidates.filter(recipe => {
+      if (recipe.recipeType !== request.recipeType) return false
+      if (containsAllergens(recipe, request.allergies)) return false
+      if (!matchesDietaryPreference(recipe, request.dietaryPreference)) return false
+      return true
+    })
+  }
+  
+  // If still no recipe, use all recipes of the correct type (but still respect dietary preferences)
+  if (filteredCandidates.length === 0) {
+    filteredCandidates = candidates.filter(r => {
+      if (r.recipeType !== request.recipeType) return false
+      if (containsAllergens(r, request.allergies)) return false
+      if (!matchesDietaryPreference(r, request.dietaryPreference)) return false
+      return true
+    })
+  }
+  
+  // Calculate scores for each recipe
+  const scoredRecipes = filteredCandidates.map(recipe => {
+    const similarity = cosineSimilarity(
+      request.availableIngredients,
+      recipe.ingredients
+    )
+    const score = calculateRecipeScore(recipe, request, similarity)
+    return { recipe, score, similarity }
+  })
+  
+  // Sort by descending score
+  scoredRecipes.sort((a, b) => b.score - a.score)
+  
+  // Take the best recipe
+  const bestMatch = scoredRecipes[0]?.recipe || filteredCandidates[0]
+  
+  // Create a copy of the recipe to personalize
+  const generatedRecipe: Recipe = {
+    ...bestMatch,
+    missingIngredients: [],
+    estimatedPrice: bestMatch.estimatedPrice
+  }
+  
+  // Identify missing ingredients
+  const missingIngredients = findMissingIngredients(
+    generatedRecipe,
+    request.availableIngredients
+  )
+  
+  generatedRecipe.missingIngredients = missingIngredients
+  
+  // If user can purchase, adjust estimated price
+  if (request.canPurchase && missingIngredients.length > 0) {
+    const missingPrice = estimateMissingPrice(missingIngredients)
+    generatedRecipe.estimatedPrice = missingPrice
+    
+    // If budget is exceeded, try to find a cheaper alternative
+    if (request.budget && missingPrice > request.budget) {
+      // Look for a recipe with better quality/price ratio
+      const affordableRecipes = scoredRecipes
+        .filter(sr => {
+          const missing = findMissingIngredients(sr.recipe, request.availableIngredients)
+          const price = estimateMissingPrice(missing)
+          return price <= (request.budget || Infinity)
+        })
+        .sort((a, b) => b.score - a.score)
+      
+      if (affordableRecipes.length > 0) {
+        const affordable = affordableRecipes[0].recipe
+        const missing = findMissingIngredients(affordable, request.availableIngredients)
+        return {
+          ...affordable,
+          missingIngredients: missing,
+          estimatedPrice: estimateMissingPrice(missing)
+        }
+      }
+    }
+  } else {
+    // If user cannot purchase, check that they have all ingredients
+    if (missingIngredients.length > 0) {
+      // Try to find a recipe with available ingredients
+      const availableRecipes = scoredRecipes
+        .filter(sr => {
+          const missing = findMissingIngredients(sr.recipe, request.availableIngredients)
+          return missing.length === 0
+        })
+        .sort((a, b) => b.score - a.score)
+      
+      if (availableRecipes.length > 0) {
+        const available = availableRecipes[0].recipe
+        return {
+          ...available,
+          missingIngredients: [],
+          estimatedPrice: 0
+        }
+      }
+    }
+  }
+  
+  return generatedRecipe
+}
+
+/**
+ * Synchronous version for backward compatibility (uses templates only)
+ * @deprecated Use async generateRecipe() instead
+ */
+export function generateRecipeSync(request: RecipeRequest): Recipe {
   // Filter recipes according to basic criteria
   let candidates = RECIPE_TEMPLATES.filter(recipe => {
     // Recipe type must match

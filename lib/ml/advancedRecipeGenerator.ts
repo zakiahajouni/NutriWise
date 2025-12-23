@@ -289,9 +289,9 @@ async function generateWithFallback(request: RecipeRequest): Promise<Recipe> {
     console.error('Error loading from DB:', error)
   }
   
-  // Fallback to static templates
+  // Fallback to static templates (now loads from DB)
   const { generateRecipe } = await import('./recipeGenerator')
-  return generateRecipe(request)
+  return await generateRecipe(request)
 }
 
 /**

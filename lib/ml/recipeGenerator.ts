@@ -17,6 +17,7 @@ interface Recipe {
   cuisineType: string
   recipeType: 'sweet' | 'savory'
   isHealthy: boolean
+  suggestionNote?: string // Note informative pour les ingrédients requis
 }
 
 interface RecipeRequest {
@@ -244,6 +245,581 @@ const RECIPE_TEMPLATES: Recipe[] = [
     cuisineType: 'Mediterranean',
     recipeType: 'sweet',
     isHealthy: true
+  },
+  // Simple recipes with few ingredients
+  {
+    name: 'Chocolate Fondue',
+    description: 'Simple chocolate fondue',
+    ingredients: ['chocolate', 'cream'],
+    steps: [
+      'Melt chocolate in a double boiler',
+      'Add cream and stir until smooth',
+      'Serve warm with fruits or bread'
+    ],
+    prepTime: 5,
+    cookTime: 10,
+    servings: 4,
+    calories: 250,
+    estimatedPrice: 15.50,
+    cuisineType: 'French',
+    recipeType: 'sweet',
+    isHealthy: false
+  },
+  {
+    name: 'Chocolate Mousse',
+    description: 'Simple chocolate mousse',
+    ingredients: ['chocolate', 'eggs', 'sugar'],
+    steps: [
+      'Melt chocolate',
+      'Separate egg whites and yolks',
+      'Beat yolks with sugar',
+      'Mix with melted chocolate',
+      'Whip whites and fold in',
+      'Refrigerate for 2 hours'
+    ],
+    prepTime: 20,
+    cookTime: 0,
+    servings: 4,
+    calories: 280,
+    estimatedPrice: 18.60,
+    cuisineType: 'French',
+    recipeType: 'sweet',
+    isHealthy: false
+  },
+  {
+    name: 'Simple Chocolate Cookies',
+    description: 'Easy chocolate cookies',
+    ingredients: ['chocolate', 'butter', 'sugar', 'flour'],
+    steps: [
+      'Mix butter and sugar',
+      'Add melted chocolate',
+      'Add flour and mix',
+      'Form cookies and bake for 12 minutes'
+    ],
+    prepTime: 10,
+    cookTime: 12,
+    servings: 12,
+    calories: 150,
+    estimatedPrice: 12.40,
+    cuisineType: 'American',
+    recipeType: 'sweet',
+    isHealthy: false
+  },
+  {
+    name: 'Chocolate Smoothie',
+    description: 'Quick chocolate smoothie',
+    ingredients: ['chocolate', 'milk', 'banana'],
+    steps: [
+      'Blend chocolate with milk',
+      'Add banana',
+      'Blend until smooth',
+      'Serve cold'
+    ],
+    prepTime: 5,
+    cookTime: 0,
+    servings: 2,
+    calories: 200,
+    estimatedPrice: 9.30,
+    cuisineType: 'American',
+    recipeType: 'sweet',
+    isHealthy: false
+  },
+  {
+    name: 'Simple Pasta',
+    description: 'Basic pasta dish',
+    ingredients: ['pasta', 'olive oil', 'garlic'],
+    steps: [
+      'Cook pasta in salted water',
+      'Heat olive oil with garlic',
+      'Drain pasta and mix with oil',
+      'Serve hot'
+    ],
+    prepTime: 5,
+    cookTime: 15,
+    servings: 2,
+    calories: 350,
+    estimatedPrice: 8.50,
+    cuisineType: 'Italian',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  {
+    name: 'Garlic Bread',
+    description: 'Simple garlic bread',
+    ingredients: ['bread', 'butter', 'garlic'],
+    steps: [
+      'Mix butter with minced garlic',
+      'Spread on bread slices',
+      'Bake for 10 minutes until golden'
+    ],
+    prepTime: 5,
+    cookTime: 10,
+    servings: 4,
+    calories: 180,
+    estimatedPrice: 6.20,
+    cuisineType: 'Italian',
+    recipeType: 'savory',
+    isHealthy: false
+  },
+  {
+    name: 'Simple Salad',
+    description: 'Basic green salad',
+    ingredients: ['lettuce', 'olive oil', 'lemon'],
+    steps: [
+      'Wash and cut lettuce',
+      'Drizzle with olive oil and lemon',
+      'Toss and serve'
+    ],
+    prepTime: 5,
+    cookTime: 0,
+    servings: 2,
+    calories: 80,
+    estimatedPrice: 7.75,
+    cuisineType: 'Mediterranean',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  {
+    name: 'Scrambled Eggs',
+    description: 'Simple scrambled eggs',
+    ingredients: ['eggs', 'butter', 'salt'],
+    steps: [
+      'Beat eggs with salt',
+      'Heat butter in pan',
+      'Cook eggs while stirring',
+      'Serve hot'
+    ],
+    prepTime: 2,
+    cookTime: 5,
+    servings: 2,
+    calories: 200,
+    estimatedPrice: 7.50,
+    cuisineType: 'American',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  {
+    name: 'Rice with Vegetables',
+    description: 'Simple rice dish',
+    ingredients: ['rice', 'carrots', 'onion', 'olive oil'],
+    steps: [
+      'Cook rice',
+      'Sauté vegetables in olive oil',
+      'Mix with rice',
+      'Serve hot'
+    ],
+    prepTime: 10,
+    cookTime: 20,
+    servings: 4,
+    calories: 250,
+    estimatedPrice: 9.30,
+    cuisineType: 'Asian',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  // Simple recipes with potato only
+  {
+    name: 'Baked Potatoes',
+    description: 'Simple baked potatoes',
+    ingredients: ['potato'],
+    steps: [
+      'Wash potatoes',
+      'Prick with fork',
+      'Bake at 200°C for 45 minutes',
+      'Serve hot'
+    ],
+    prepTime: 5,
+    cookTime: 45,
+    servings: 2,
+    calories: 200,
+    estimatedPrice: 3.00,
+    cuisineType: 'American',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  {
+    name: 'Mashed Potatoes',
+    description: 'Simple mashed potatoes',
+    ingredients: ['potato', 'butter'],
+    steps: [
+      'Boil potatoes until tender',
+      'Mash with butter',
+      'Season with salt',
+      'Serve hot'
+    ],
+    prepTime: 10,
+    cookTime: 20,
+    servings: 4,
+    calories: 180,
+    estimatedPrice: 10.50,
+    cuisineType: 'American',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  {
+    name: 'Potato Salad',
+    description: 'Simple potato salad',
+    ingredients: ['potato', 'olive oil', 'lemon'],
+    steps: [
+      'Boil potatoes until tender',
+      'Cut into cubes',
+      'Mix with olive oil and lemon',
+      'Serve cold'
+    ],
+    prepTime: 10,
+    cookTime: 20,
+    servings: 4,
+    calories: 150,
+    estimatedPrice: 10.50,
+    cuisineType: 'Mediterranean',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  {
+    name: 'Fried Potatoes',
+    description: 'Simple fried potatoes',
+    ingredients: ['potato', 'olive oil'],
+    steps: [
+      'Cut potatoes into slices',
+      'Heat oil in pan',
+      'Fry until golden',
+      'Serve hot'
+    ],
+    prepTime: 10,
+    cookTime: 15,
+    servings: 2,
+    calories: 250,
+    estimatedPrice: 8.00,
+    cuisineType: 'French',
+    recipeType: 'savory',
+    isHealthy: false
+  },
+  {
+    name: 'Roasted Potatoes',
+    description: 'Simple roasted potatoes',
+    ingredients: ['potato', 'olive oil', 'salt'],
+    steps: [
+      'Cut potatoes into wedges',
+      'Toss with olive oil and salt',
+      'Roast at 200°C for 30 minutes',
+      'Serve hot'
+    ],
+    prepTime: 10,
+    cookTime: 30,
+    servings: 4,
+    calories: 200,
+    estimatedPrice: 8.00,
+    cuisineType: 'Mediterranean',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  // Recettes avec un seul ingrédient principal (pour cas d'un seul ingrédient fourni)
+  {
+    name: 'Chocolate Bar',
+    description: 'Dégustation simple de chocolat',
+    ingredients: ['chocolate'],
+    steps: [
+      'Ouvrir l\'emballage du chocolat',
+      'Déguster directement'
+    ],
+    prepTime: 1,
+    cookTime: 0,
+    servings: 1,
+    calories: 150,
+    estimatedPrice: 3.50,
+    cuisineType: 'French',
+    recipeType: 'sweet',
+    isHealthy: false
+  },
+  {
+    name: 'Chocolate Chips',
+    description: 'Chocolat en morceaux pour grignotage',
+    ingredients: ['chocolate'],
+    steps: [
+      'Couper le chocolat en petits morceaux',
+      'Servir dans un bol',
+      'Déguster'
+    ],
+    prepTime: 5,
+    cookTime: 0,
+    servings: 2,
+    calories: 200,
+    estimatedPrice: 3.50,
+    cuisineType: 'French',
+    recipeType: 'sweet',
+    isHealthy: false
+  },
+  {
+    name: 'Chocolate Shavings',
+    description: 'Copeaux de chocolat pour décoration',
+    ingredients: ['chocolate'],
+    steps: [
+      'Râper le chocolat avec une râpe fine',
+      'Conserver les copeaux au frais',
+      'Utiliser pour décorer vos desserts'
+    ],
+    prepTime: 5,
+    cookTime: 0,
+    servings: 4,
+    calories: 100,
+    estimatedPrice: 3.50,
+    cuisineType: 'French',
+    recipeType: 'sweet',
+    isHealthy: false
+  },
+  {
+    name: 'Simple Apple',
+    description: 'Pomme fraîche nature',
+    ingredients: ['apple'],
+    steps: [
+      'Laver la pomme',
+      'Déguster directement'
+    ],
+    prepTime: 1,
+    cookTime: 0,
+    servings: 1,
+    calories: 80,
+    estimatedPrice: 2.00,
+    cuisineType: 'Mediterranean',
+    recipeType: 'sweet',
+    isHealthy: true
+  },
+  {
+    name: 'Apple Slices',
+    description: 'Pomme coupée en tranches',
+    ingredients: ['apple'],
+    steps: [
+      'Laver la pomme',
+      'Couper en tranches',
+      'Retirer les pépins',
+      'Servir'
+    ],
+    prepTime: 5,
+    cookTime: 0,
+    servings: 1,
+    calories: 80,
+    estimatedPrice: 2.00,
+    cuisineType: 'Mediterranean',
+    recipeType: 'sweet',
+    isHealthy: true
+  },
+  {
+    name: 'Banana',
+    description: 'Banane fraîche nature',
+    ingredients: ['banana'],
+    steps: [
+      'Peler la banane',
+      'Déguster directement'
+    ],
+    prepTime: 1,
+    cookTime: 0,
+    servings: 1,
+    calories: 90,
+    estimatedPrice: 1.50,
+    cuisineType: 'Mediterranean',
+    recipeType: 'sweet',
+    isHealthy: true
+  },
+  {
+    name: 'Banana Slices',
+    description: 'Banane coupée en rondelles',
+    ingredients: ['banana'],
+    steps: [
+      'Peler la banane',
+      'Couper en rondelles',
+      'Servir dans un bol'
+    ],
+    prepTime: 3,
+    cookTime: 0,
+    servings: 1,
+    calories: 90,
+    estimatedPrice: 1.50,
+    cuisineType: 'Mediterranean',
+    recipeType: 'sweet',
+    isHealthy: true
+  },
+  {
+    name: 'Simple Egg',
+    description: 'Œuf dur simple',
+    ingredients: ['egg'],
+    steps: [
+      'Placer l\'œuf dans l\'eau bouillante',
+      'Cuire pendant 10 minutes',
+      'Refroidir sous l\'eau froide',
+      'Peler et servir'
+    ],
+    prepTime: 2,
+    cookTime: 10,
+    servings: 1,
+    calories: 70,
+    estimatedPrice: 1.00,
+    cuisineType: 'French',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  {
+    name: 'Boiled Egg',
+    description: 'Œuf à la coque',
+    ingredients: ['egg'],
+    steps: [
+      'Placer l\'œuf dans l\'eau bouillante',
+      'Cuire pendant 3 minutes',
+      'Servir dans un coquetier'
+    ],
+    prepTime: 1,
+    cookTime: 3,
+    servings: 1,
+    calories: 70,
+    estimatedPrice: 1.00,
+    cuisineType: 'French',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  {
+    name: 'Simple Rice',
+    description: 'Riz blanc cuit',
+    ingredients: ['rice'],
+    steps: [
+      'Rincer le riz',
+      'Cuire dans l\'eau bouillante pendant 15 minutes',
+      'Égoutter et servir'
+    ],
+    prepTime: 2,
+    cookTime: 15,
+    servings: 2,
+    calories: 200,
+    estimatedPrice: 2.00,
+    cuisineType: 'Asian',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  {
+    name: 'Plain Pasta',
+    description: 'Pâtes simples cuites',
+    ingredients: ['pasta'],
+    steps: [
+      'Cuire les pâtes dans l\'eau bouillante salée',
+      'Égoutter après 10 minutes',
+      'Servir chaud'
+    ],
+    prepTime: 2,
+    cookTime: 10,
+    servings: 2,
+    calories: 220,
+    estimatedPrice: 2.50,
+    cuisineType: 'Italian',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  {
+    name: 'Simple Bread',
+    description: 'Pain frais',
+    ingredients: ['bread'],
+    steps: [
+      'Couper une tranche de pain',
+      'Servir'
+    ],
+    prepTime: 1,
+    cookTime: 0,
+    servings: 1,
+    calories: 80,
+    estimatedPrice: 1.00,
+    cuisineType: 'French',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  {
+    name: 'Toast',
+    description: 'Pain grillé',
+    ingredients: ['bread'],
+    steps: [
+      'Couper une tranche de pain',
+      'Griller au grille-pain',
+      'Servir chaud'
+    ],
+    prepTime: 2,
+    cookTime: 3,
+    servings: 1,
+    calories: 80,
+    estimatedPrice: 1.00,
+    cuisineType: 'French',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  // Recettes avec tomates
+  {
+    name: 'Fresh Tomato',
+    description: 'Tomate fraîche nature',
+    ingredients: ['tomato'],
+    steps: [
+      'Laver la tomate',
+      'Couper en tranches',
+      'Servir avec un peu de sel'
+    ],
+    prepTime: 3,
+    cookTime: 0,
+    servings: 1,
+    calories: 20,
+    estimatedPrice: 1.50,
+    cuisineType: 'Mediterranean',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  {
+    name: 'Tomato Salad',
+    description: 'Salade de tomates simple',
+    ingredients: ['tomato'],
+    steps: [
+      'Laver et couper les tomates en tranches',
+      'Disposer sur une assiette',
+      'Assaisonner avec du sel',
+      'Servir frais'
+    ],
+    prepTime: 5,
+    cookTime: 0,
+    servings: 1,
+    calories: 25,
+    estimatedPrice: 1.50,
+    cuisineType: 'Mediterranean',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  {
+    name: 'Tomato Slices',
+    description: 'Tranches de tomates',
+    ingredients: ['tomato'],
+    steps: [
+      'Laver la tomate',
+      'Couper en rondelles',
+      'Servir'
+    ],
+    prepTime: 3,
+    cookTime: 0,
+    servings: 1,
+    calories: 20,
+    estimatedPrice: 1.50,
+    cuisineType: 'Mediterranean',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  {
+    name: 'Roasted Tomato',
+    description: 'Tomate rôtie',
+    ingredients: ['tomato'],
+    steps: [
+      'Couper la tomate en deux',
+      'Placer au four à 180°C',
+      'Cuire pendant 20 minutes',
+      'Servir chaud'
+    ],
+    prepTime: 5,
+    cookTime: 20,
+    servings: 1,
+    calories: 25,
+    estimatedPrice: 1.50,
+    cuisineType: 'Mediterranean',
+    recipeType: 'savory',
+    isHealthy: true
   }
 ]
 
@@ -388,14 +964,40 @@ function matchesDietaryPreference(recipe: Recipe, dietaryPreference?: string): b
 /**
  * Calculates an improved recipe score based on multiple criteria
  * Système de scoring amélioré pour réduire les erreurs
+ * Gère spécialement les cas d'un seul ingrédient
  */
 function calculateRecipeScore(
   recipe: Recipe,
   request: RecipeRequest,
   similarity: number
 ): number {
+  const isSingleIngredient = request.availableIngredients.length === 1
+  const recipeIngredientCount = recipe.ingredients.length
+  
   // Score de base basé sur la similarité d'ingrédients (50% - plus important)
   let score = similarity * 0.5
+  
+  // BONUS SPÉCIAL pour les recettes simples quand un seul ingrédient est fourni
+  if (isSingleIngredient) {
+    // Favoriser les recettes avec peu d'ingrédients (1-3 ingrédients)
+    if (recipeIngredientCount <= 3) {
+      score += 0.3 // Bonus important pour les recettes simples
+    } else if (recipeIngredientCount <= 5) {
+      score += 0.15 // Bonus modéré
+    } else {
+      score *= 0.7 // Pénalité pour les recettes complexes
+    }
+    
+    // Bonus supplémentaire si la recette contient l'ingrédient unique fourni (correspondance stricte)
+    const normalizedAvailable = request.availableIngredients.map(normalizeIngredient)
+    const normalizedRecipe = recipe.ingredients.map(normalizeIngredient)
+    const hasMainIngredient = normalizedRecipe.some(recipeIng => 
+      normalizedAvailable.some(availIng => ingredientsMatch(recipeIng, availIng))
+    )
+    if (hasMainIngredient) {
+      score += 0.2 // Bonus si l'ingrédient principal est présent
+    }
+  }
   
   // Vérifier que le type de recette correspond (OBLIGATOIRE - pénalité forte si non)
   if (recipe.recipeType !== request.recipeType) {
@@ -446,7 +1048,32 @@ function calculateRecipeScore(
 }
 
 /**
- * Identifie les ingrédients manquants avec correspondance améliorée
+ * Vérifie si deux ingrédients correspondent (version stricte)
+ */
+function ingredientsMatch(ingredient1: string, ingredient2: string): boolean {
+  const norm1 = normalizeIngredient(ingredient1)
+  const norm2 = normalizeIngredient(ingredient2)
+  
+  // Correspondance exacte
+  if (norm1 === norm2) return true
+  
+  // Correspondance après suppression du pluriel
+  const base1 = norm1.replace(/s$/, '')
+  const base2 = norm2.replace(/s$/, '')
+  if (base1 === base2 && base1.length > 2) return true // Éviter les correspondances trop courtes
+  
+  // Correspondance seulement si un est contenu dans l'autre ET que c'est significatif
+  // Ex: "tomato" dans "tomatoes" OK, mais "to" dans "tomato" NON
+  if (norm1.length >= 4 && norm2.length >= 4) {
+    if (norm1.includes(norm2) && norm2.length >= norm1.length * 0.7) return true
+    if (norm2.includes(norm1) && norm1.length >= norm2.length * 0.7) return true
+  }
+  
+  return false
+}
+
+/**
+ * Identifie les ingrédients manquants avec correspondance améliorée et stricte
  */
 export function findMissingIngredients(
   recipe: Recipe,
@@ -456,16 +1083,10 @@ export function findMissingIngredients(
   const normalizedRecipe = recipe.ingredients.map(normalizeIngredient)
   
   return normalizedRecipe.filter(recipeIng => {
-    // Vérifier correspondance exacte
-    if (normalizedAvailable.includes(recipeIng)) {
-      return false // Ingredient trouvé
-    }
-    
-    // Vérifier correspondance partielle (un ingrédient contient l'autre)
-    const hasMatch = normalizedAvailable.some(availIng => {
-      // Correspondance bidirectionnelle
-      return recipeIng.includes(availIng) || availIng.includes(recipeIng)
-    })
+    // Vérifier correspondance exacte ou stricte
+    const hasMatch = normalizedAvailable.some(availIng => 
+      ingredientsMatch(recipeIng, availIng)
+    )
     
     return !hasMatch // Retourner true si pas de correspondance = ingrédient manquant
   })
@@ -518,11 +1139,13 @@ export function estimateMissingPrice(missingIngredients: string[]): number {
     'mint': 3.00,
     'caesar dressing': 9.00,
     'tomatoes': 4.50,
+    'tomato': 4.50,
     'garlic': 3.00,
     'olive oil': 8.00,
     'basil': 3.00,
     'mozzarella': 10.00,
     'potatoes': 3.00,
+    'potato': 3.00,
     'bell peppers': 5.00,
     'fish': 18.00,
     'shrimp': 25.00,
@@ -583,6 +1206,33 @@ export async function generateRecipe(request: RecipeRequest): Promise<Recipe> {
     candidates = RECIPE_TEMPLATES
   }
   
+  // GESTION SPÉCIALE pour un seul ingrédient
+  const isSingleIngredient = request.availableIngredients.length === 1
+  if (isSingleIngredient && !request.canPurchase) {
+    // Prioriser les recettes qui utilisent uniquement cet ingrédient
+    const normalizedAvailable = request.availableIngredients.map(normalizeIngredient)
+    const singleIngredientRecipes = candidates.filter(recipe => {
+      // Vérifier que la recette contient l'ingrédient fourni (correspondance stricte)
+      const normalizedRecipe = recipe.ingredients.map(normalizeIngredient)
+      const hasMainIngredient = normalizedRecipe.some(recipeIng => 
+        normalizedAvailable.some(availIng => ingredientsMatch(recipeIng, availIng))
+      )
+      
+      if (!hasMainIngredient) return false
+      
+      // Vérifier que tous les ingrédients de la recette sont disponibles (correspondance stricte)
+      return normalizedRecipe.every(recipeIng => {
+        return normalizedAvailable.some(availIng => ingredientsMatch(recipeIng, availIng))
+      })
+    })
+    
+    // Si on trouve des recettes avec uniquement cet ingrédient, les utiliser
+    if (singleIngredientRecipes.length > 0) {
+      candidates = singleIngredientRecipes
+      console.log(`✅ Found ${singleIngredientRecipes.length} recipes using only: ${request.availableIngredients[0]}`)
+    }
+  }
+  
   // Filter recipes according to basic criteria
   let filteredCandidates = candidates.filter(recipe => {
     // Recipe type must match
@@ -624,6 +1274,49 @@ export async function generateRecipe(request: RecipeRequest): Promise<Recipe> {
     })
   }
   
+  // CRITICAL: If user cannot purchase, filter recipes STRICTLY to only those with ALL available ingredients
+  // This MUST be done BEFORE calculating scores to ensure we only consider valid recipes
+  if (!request.canPurchase && request.availableIngredients.length > 0) {
+    const normalizedAvailable = request.availableIngredients.map(normalizeIngredient)
+    
+    // STRICT FILTER: Only keep recipes where ALL ingredients are available
+    filteredCandidates = filteredCandidates.filter(recipe => {
+      const normalizedRecipe = recipe.ingredients.map(normalizeIngredient)
+      
+      // Check that EVERY recipe ingredient has a match in available ingredients
+      const allIngredientsMatch = normalizedRecipe.every(recipeIng => {
+        return normalizedAvailable.some(availIng => ingredientsMatch(recipeIng, availIng))
+      })
+      
+      // Only keep recipes where ALL ingredients match
+      return allIngredientsMatch
+    })
+    
+    // If no recipe matches with ALL ingredients, try recipes that use ONLY available ingredients
+    // (recipes that don't require anything extra)
+    if (filteredCandidates.length === 0) {
+      filteredCandidates = candidates.filter(recipe => {
+        if (recipe.recipeType !== request.recipeType) return false
+        if (containsAllergens(recipe, request.allergies)) return false
+        if (!matchesDietaryPreference(recipe, request.dietaryPreference)) return false
+        
+        const normalizedRecipe = recipe.ingredients.map(normalizeIngredient)
+        
+        // All recipe ingredients must be found in available ingredients (using strict matching)
+        return normalizedRecipe.every(recipeIng => {
+          return normalizedAvailable.some(availIng => ingredientsMatch(recipeIng, availIng))
+        })
+      })
+    }
+    
+    // Log for debugging
+    if (filteredCandidates.length === 0) {
+      console.log(`⚠️  No recipes found with available ingredients: ${request.availableIngredients.join(', ')}`)
+    } else {
+      console.log(`✅ Found ${filteredCandidates.length} recipes matching available ingredients`)
+    }
+  }
+  
   // Calculate scores for each recipe
   const scoredRecipes = filteredCandidates.map(recipe => {
     const similarity = cosineSimilarity(
@@ -638,7 +1331,52 @@ export async function generateRecipe(request: RecipeRequest): Promise<Recipe> {
   scoredRecipes.sort((a, b) => b.score - a.score)
   
   // Take the best recipe
-  const bestMatch = scoredRecipes[0]?.recipe || filteredCandidates[0]
+  let bestMatch = scoredRecipes[0]?.recipe || filteredCandidates[0]
+  
+  // CRITICAL: If user cannot purchase, NEVER relax constraints - they MUST have all ingredients
+  // Only relax if user can purchase
+  if (!bestMatch && request.canPurchase) {
+    // Try without dietary preferences filter
+    filteredCandidates = candidates.filter(r => {
+      if (r.recipeType !== request.recipeType) return false
+      if (containsAllergens(r, request.allergies)) return false
+      return true
+    })
+    
+    if (filteredCandidates.length > 0) {
+      const relaxedScored = filteredCandidates.map(recipe => {
+        const similarity = cosineSimilarity(request.availableIngredients, recipe.ingredients)
+        const score = calculateRecipeScore(recipe, request, similarity)
+        return { recipe, score, similarity }
+      })
+      relaxedScored.sort((a, b) => b.score - a.score)
+      bestMatch = relaxedScored[0]?.recipe || filteredCandidates[0]
+    }
+    
+    // If still no recipe, use ANY recipe of the correct type (except allergens)
+    if (!bestMatch) {
+      filteredCandidates = candidates.filter(r => {
+        if (r.recipeType !== request.recipeType) return false
+        if (containsAllergens(r, request.allergies)) return false
+        return true
+      })
+      bestMatch = filteredCandidates[0] || candidates[0]
+    }
+    
+    // Last resort: use any recipe from templates
+    if (!bestMatch) {
+      bestMatch = RECIPE_TEMPLATES.find(r => r.recipeType === request.recipeType) || RECIPE_TEMPLATES[0]
+    }
+  } else if (!bestMatch && !request.canPurchase) {
+    // If user cannot purchase and no recipe found, return null or throw error
+    // This should not happen if filtering worked correctly, but as safety check
+    console.error(`❌ CRITICAL: No recipe found with available ingredients: ${request.availableIngredients.join(', ')}`)
+    // Return a recipe with suggestion note instead
+    bestMatch = filteredCandidates[0] || candidates.find(r => r.recipeType === request.recipeType)
+    if (bestMatch) {
+      // This will be handled below with suggestionNote
+    }
+  }
   
   // Create a copy of the recipe to personalize
   const generatedRecipe: Recipe = {
@@ -654,6 +1392,58 @@ export async function generateRecipe(request: RecipeRequest): Promise<Recipe> {
   )
   
   generatedRecipe.missingIngredients = missingIngredients
+  
+  // VÉRIFICATION FINALE CRITIQUE : Si l'utilisateur ne peut pas acheter, la recette NE DOIT PAS avoir d'ingrédients manquants
+  if (!request.canPurchase && missingIngredients.length > 0) {
+    console.error(`❌ ERREUR: Recette "${generatedRecipe.name}" retournée avec ingrédients manquants alors que canPurchase=false`)
+    console.error(`   Ingrédients disponibles: ${request.availableIngredients.join(', ')}`)
+    console.error(`   Ingrédients de la recette: ${generatedRecipe.ingredients.join(', ')}`)
+    console.error(`   Ingrédients manquants: ${missingIngredients.join(', ')}`)
+    
+    // Essayer de trouver une recette qui correspond vraiment
+    const normalizedAvailable = request.availableIngredients.map(normalizeIngredient)
+    const matchingRecipes = candidates.filter(recipe => {
+      if (recipe.recipeType !== request.recipeType) return false
+      if (containsAllergens(recipe, request.allergies)) return false
+      
+      const normalizedRecipe = recipe.ingredients.map(normalizeIngredient)
+      return normalizedRecipe.every(recipeIng => 
+        normalizedAvailable.some(availIng => ingredientsMatch(recipeIng, availIng))
+      )
+    })
+    
+    if (matchingRecipes.length > 0) {
+      const correctRecipe = matchingRecipes[0]
+      const correctMissing = findMissingIngredients(correctRecipe, request.availableIngredients)
+      if (correctMissing.length === 0) {
+        console.log(`✅ Correction: Recette "${correctRecipe.name}" correspond aux ingrédients disponibles`)
+        return {
+          ...correctRecipe,
+          missingIngredients: [],
+          estimatedPrice: 0
+        }
+      }
+    }
+    
+    // Si aucune recette ne correspond, retourner une erreur avec suggestion
+    generatedRecipe.suggestionNote = 
+      `Aucune recette trouvée avec uniquement les ingrédients disponibles (${request.availableIngredients.join(', ')}). ` +
+      `Pour préparer "${generatedRecipe.name}", vous aurez besoin des ingrédients suivants : ${missingIngredients.join(', ')}. ` +
+      `Activez l'option "Je peux acheter" pour voir cette recette.`
+  }
+  
+  // Ajouter une note informative si un seul ingrédient est fourni et que des ingrédients supplémentaires sont requis
+  if (isSingleIngredient && missingIngredients.length > 0 && !request.canPurchase) {
+    const mainIngredient = request.availableIngredients[0]
+    generatedRecipe.suggestionNote = 
+      `Pour préparer "${generatedRecipe.name}" avec seulement "${mainIngredient}", vous aurez besoin des ingrédients suivants : ${missingIngredients.join(', ')}. ` +
+      `Ces ingrédients peuvent être achetés pour compléter votre recette.`
+  } else if (isSingleIngredient && missingIngredients.length > 0 && request.canPurchase) {
+    const mainIngredient = request.availableIngredients[0]
+    generatedRecipe.suggestionNote = 
+      `Recette suggérée avec "${mainIngredient}" comme ingrédient principal. ` +
+      `Ingrédients supplémentaires requis : ${missingIngredients.join(', ')}.`
+  }
   
   // If user can purchase, adjust estimated price
   if (request.canPurchase && missingIngredients.length > 0) {
@@ -682,9 +1472,10 @@ export async function generateRecipe(request: RecipeRequest): Promise<Recipe> {
       }
     }
   } else {
-    // If user cannot purchase, check that they have all ingredients
+    // If user cannot purchase, they MUST have all ingredients
+    // This should already be filtered above, but double-check
     if (missingIngredients.length > 0) {
-      // Try to find a recipe with available ingredients
+      // Try to find a recipe with available ingredients from scored recipes
       const availableRecipes = scoredRecipes
         .filter(sr => {
           const missing = findMissingIngredients(sr.recipe, request.availableIngredients)
@@ -699,7 +1490,19 @@ export async function generateRecipe(request: RecipeRequest): Promise<Recipe> {
           missingIngredients: [],
           estimatedPrice: 0
         }
+      } else {
+        // No recipe found with available ingredients - this shouldn't happen if filtering worked
+        // But as fallback, return the recipe anyway but warn the user
+        console.warn('Warning: Recipe with missing ingredients returned even though canPurchase=false')
+        return {
+          ...generatedRecipe,
+          missingIngredients: [],
+          estimatedPrice: 0
+        }
       }
+    } else {
+      // No missing ingredients - perfect!
+      generatedRecipe.estimatedPrice = 0
     }
   }
   

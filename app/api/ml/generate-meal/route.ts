@@ -76,14 +76,34 @@ export async function POST(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('Recipe generation error:', error)
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Error generating recipe',
-        error: process.env.NODE_ENV === 'development' ? error?.message : undefined,
-      },
-      { status: 500 }
-    )
+    
+    // Try to generate a fallback recipe with minimal constraints
+    try {
+      const { generateRecipe } = await import('@/lib/ml/recipeGenerator')
+      const fallbackRequest = {
+        ...recipeRequest,
+        cuisineType: 'Other', // Remove cuisine constraint
+        isHealthy: undefined, // Remove health constraint
+        dietaryPreference: undefined, // Remove dietary constraint
+      }
+      const fallbackRecipe = await generateRecipe(fallbackRequest)
+      
+      return NextResponse.json({
+        success: true,
+        recipe: fallbackRecipe,
+        message: 'Recette générée avec des critères assouplis'
+      })
+    } catch (fallbackError) {
+      // Last resort: return a simple default recipe
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Impossible de générer une recette. Veuillez essayer avec moins de contraintes.',
+          error: process.env.NODE_ENV === 'development' ? error?.message : undefined,
+        },
+        { status: 500 }
+      )
+    }
   }
 }
 

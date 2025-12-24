@@ -31,6 +31,8 @@ interface SuggestedRecipe {
   isHealthy: boolean
   type: 'sweet' | 'savory'
   matchReason: string
+  suggestionNote?: string // Note informative pour les ingrédients requis
+  missingIngredients?: string[]
 }
 
 interface UserProfile {
@@ -257,6 +259,12 @@ export default function DashboardPage() {
                               {suggestion.matchReason}
                             </p>
                           </div>
+                          {suggestion.suggestionNote && (
+                            <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                              <p className="font-medium mb-1">💡 Note:</p>
+                              <p>{suggestion.suggestionNote}</p>
+                            </div>
+                          )}
                           <div className="mb-3">
                             <p className="text-xs text-gray-500 mb-1">Cuisine: {suggestion.cuisineType}</p>
                             <p className="text-xs text-gray-500">Ingredients: {suggestion.ingredients.slice(0, 3).join(', ')}...</p>

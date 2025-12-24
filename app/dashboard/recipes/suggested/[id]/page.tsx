@@ -20,6 +20,8 @@ interface SuggestedRecipe {
   isHealthy: boolean
   type: 'sweet' | 'savory'
   matchReason: string
+  suggestionNote?: string // Note informative pour les ingrédients requis
+  missingIngredients?: string[]
 }
 
 export default function SuggestedRecipeDetailPage() {
@@ -178,6 +180,14 @@ export default function SuggestedRecipeDetailPage() {
                 💡 Why this recipe is suggested for you: {recipe.matchReason}
               </p>
             </div>
+
+            {/* Suggestion Note */}
+            {recipe.suggestionNote && (
+              <div className="mb-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                <p className="text-sm text-yellow-800 font-medium mb-1">💡 Note importante:</p>
+                <p className="text-sm text-yellow-700">{recipe.suggestionNote}</p>
+              </div>
+            )}
 
             {/* Ingredients */}
             <div className="mb-8">

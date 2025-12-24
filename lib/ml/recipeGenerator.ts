@@ -820,6 +820,116 @@ const RECIPE_TEMPLATES: Recipe[] = [
     cuisineType: 'Mediterranean',
     recipeType: 'savory',
     isHealthy: true
+  },
+  // Recettes avec lait et chocolat
+  {
+    name: 'Chocolate Milk',
+    description: 'Lait au chocolat simple',
+    ingredients: ['milk', 'chocolate'],
+    steps: [
+      'Faire chauffer le lait',
+      'Ajouter le chocolat en morceaux',
+      'Mélanger jusqu\'à ce que le chocolat fonde',
+      'Servir chaud'
+    ],
+    prepTime: 3,
+    cookTime: 5,
+    servings: 2,
+    calories: 180,
+    estimatedPrice: 5.00,
+    cuisineType: 'French',
+    recipeType: 'sweet',
+    isHealthy: false
+  },
+  {
+    name: 'Chocolate Milkshake',
+    description: 'Milkshake au chocolat',
+    ingredients: ['milk', 'chocolate'],
+    steps: [
+      'Mettre le lait et le chocolat dans un mixeur',
+      'Mixer jusqu\'à obtenir une texture lisse',
+      'Servir froid avec des glaçons'
+    ],
+    prepTime: 5,
+    cookTime: 0,
+    servings: 2,
+    calories: 200,
+    estimatedPrice: 5.00,
+    cuisineType: 'American',
+    recipeType: 'sweet',
+    isHealthy: false
+  },
+  {
+    name: 'Hot Chocolate',
+    description: 'Chocolat chaud',
+    ingredients: ['milk', 'chocolate'],
+    steps: [
+      'Faire chauffer le lait à feu moyen',
+      'Ajouter le chocolat haché',
+      'Remuer jusqu\'à ce que le chocolat soit fondu',
+      'Servir chaud'
+    ],
+    prepTime: 2,
+    cookTime: 5,
+    servings: 2,
+    calories: 190,
+    estimatedPrice: 5.00,
+    cuisineType: 'French',
+    recipeType: 'sweet',
+    isHealthy: false
+  },
+  {
+    name: 'Chocolate Milk Drink',
+    description: 'Boisson au chocolat et lait',
+    ingredients: ['milk', 'chocolate'],
+    steps: [
+      'Mélanger le lait avec le chocolat en poudre',
+      'Bien remuer',
+      'Servir froid'
+    ],
+    prepTime: 2,
+    cookTime: 0,
+    servings: 1,
+    calories: 150,
+    estimatedPrice: 3.50,
+    cuisineType: 'American',
+    recipeType: 'sweet',
+    isHealthy: false
+  },
+  // Recettes avec lait uniquement
+  {
+    name: 'Fresh Milk',
+    description: 'Lait frais',
+    ingredients: ['milk'],
+    steps: [
+      'Verser le lait dans un verre',
+      'Servir froid'
+    ],
+    prepTime: 1,
+    cookTime: 0,
+    servings: 1,
+    calories: 120,
+    estimatedPrice: 2.00,
+    cuisineType: 'French',
+    recipeType: 'savory',
+    isHealthy: true
+  },
+  {
+    name: 'Warm Milk',
+    description: 'Lait chaud',
+    ingredients: ['milk'],
+    steps: [
+      'Faire chauffer le lait à feu doux',
+      'Servir chaud'
+    ],
+    prepTime: 1,
+    cookTime: 3,
+    servings: 1,
+    calories: 120,
+    estimatedPrice: 2.00,
+    cuisineType: 'French',
+    recipeType: 'savory',
+    isHealthy: true
   }
 ]
 
@@ -1111,6 +1221,7 @@ export function estimateMissingPrice(missingIngredients: string[]): number {
     'rice': 6.00,
     'arborio rice': 6.00,
     'chocolate': 10.50,
+    'milk': 4.00,
     'butter': 7.50,
     'flour': 3.00,
     'sugar': 4.50,
@@ -1317,6 +1428,68 @@ export async function generateRecipe(request: RecipeRequest): Promise<Recipe> {
     }
   }
   
+  // CRITICAL: If user cannot purchase and no recipes match, return error immediately BEFORE calculating scores
+  if (!request.canPurchase && request.availableIngredients.length > 0 && filteredCandidates.length === 0) {
+    console.error(`❌ ERREUR CRITIQUE: Aucune recette trouvée avec les ingrédients disponibles: ${request.availableIngredients.join(', ')}`)
+    
+    // Créer une recette d'erreur avec message informatif
+    const errorRecipe: Recipe = {
+      name: 'Aucune recette trouvée',
+      description: `Aucune recette ne correspond aux ingrédients disponibles : ${request.availableIngredients.join(', ')}`,
+      ingredients: request.availableIngredients,
+      steps: [
+        'Aucune recette ne peut être préparée avec uniquement ces ingrédients.',
+        'Essayez d\'ajouter d\'autres ingrédients ou activez l\'option "Je peux acheter" pour voir des suggestions.'
+      ],
+      prepTime: 0,
+      cookTime: 0,
+      servings: 0,
+      calories: 0,
+      estimatedPrice: 0,
+      cuisineType: 'Other',
+      recipeType: request.recipeType,
+      isHealthy: false,
+      missingIngredients: [],
+      suggestionNote: `Aucune recette trouvée avec uniquement : ${request.availableIngredients.join(', ')}. Veuillez ajouter d'autres ingrédients ou activer l'option d'achat.`
+    }
+    return errorRecipe
+  }
+  
+  // CRITICAL: Double-check that filteredCandidates still match when canPurchase=false
+  if (!request.canPurchase && request.availableIngredients.length > 0 && filteredCandidates.length > 0) {
+    const normalizedAvailable = request.availableIngredients.map(normalizeIngredient)
+    filteredCandidates = filteredCandidates.filter(recipe => {
+      const normalizedRecipe = recipe.ingredients.map(normalizeIngredient)
+      return normalizedRecipe.every(recipeIng => 
+        normalizedAvailable.some(availIng => ingredientsMatch(recipeIng, availIng))
+      )
+    })
+    
+    if (filteredCandidates.length === 0) {
+      console.error(`❌ ERREUR CRITIQUE: Après vérification finale, aucune recette ne correspond aux ingrédients: ${request.availableIngredients.join(', ')}`)
+      const errorRecipe: Recipe = {
+        name: 'Aucune recette trouvée',
+        description: `Aucune recette ne correspond exactement aux ingrédients disponibles : ${request.availableIngredients.join(', ')}`,
+        ingredients: request.availableIngredients,
+        steps: [
+          'Aucune recette ne peut être préparée avec uniquement ces ingrédients.',
+          'Essayez d\'ajouter d\'autres ingrédients ou activez l\'option "Je peux acheter" pour voir des suggestions.'
+        ],
+        prepTime: 0,
+        cookTime: 0,
+        servings: 0,
+        calories: 0,
+        estimatedPrice: 0,
+        cuisineType: 'Other',
+        recipeType: request.recipeType,
+        isHealthy: false,
+        missingIngredients: [],
+        suggestionNote: `Aucune recette trouvée avec uniquement : ${request.availableIngredients.join(', ')}. Veuillez ajouter d'autres ingrédients ou activer l'option d'achat.`
+      }
+      return errorRecipe
+    }
+  }
+  
   // Calculate scores for each recipe
   const scoredRecipes = filteredCandidates.map(recipe => {
     const similarity = cosineSimilarity(
@@ -1368,14 +1541,50 @@ export async function generateRecipe(request: RecipeRequest): Promise<Recipe> {
       bestMatch = RECIPE_TEMPLATES.find(r => r.recipeType === request.recipeType) || RECIPE_TEMPLATES[0]
     }
   } else if (!bestMatch && !request.canPurchase) {
-    // If user cannot purchase and no recipe found, return null or throw error
-    // This should not happen if filtering worked correctly, but as safety check
+    // If user cannot purchase and no recipe found, return error recipe immediately
     console.error(`❌ CRITICAL: No recipe found with available ingredients: ${request.availableIngredients.join(', ')}`)
-    // Return a recipe with suggestion note instead
-    bestMatch = filteredCandidates[0] || candidates.find(r => r.recipeType === request.recipeType)
-    if (bestMatch) {
-      // This will be handled below with suggestionNote
+    
+    const errorRecipe: Recipe = {
+      name: 'Aucune recette trouvée',
+      description: `Aucune recette ne correspond aux ingrédients disponibles : ${request.availableIngredients.join(', ')}`,
+      ingredients: request.availableIngredients,
+      steps: [
+        'Aucune recette ne peut être préparée avec uniquement ces ingrédients.',
+        'Essayez d\'ajouter d\'autres ingrédients ou activez l\'option "Je peux acheter" pour voir des suggestions.'
+      ],
+      prepTime: 0,
+      cookTime: 0,
+      servings: 0,
+      calories: 0,
+      estimatedPrice: 0,
+      cuisineType: 'Other',
+      recipeType: request.recipeType,
+      isHealthy: false,
+      missingIngredients: [],
+      suggestionNote: `Aucune recette trouvée avec uniquement : ${request.availableIngredients.join(', ')}. Veuillez ajouter d'autres ingrédients ou activer l'option d'achat.`
     }
+    return errorRecipe
+  }
+  
+  // CRITICAL: If no bestMatch found, we should not continue
+  if (!bestMatch) {
+    const errorRecipe: Recipe = {
+      name: 'Erreur de génération',
+      description: 'Impossible de générer une recette avec les critères fournis',
+      ingredients: [],
+      steps: ['Veuillez réessayer avec d\'autres critères'],
+      prepTime: 0,
+      cookTime: 0,
+      servings: 0,
+      calories: 0,
+      estimatedPrice: 0,
+      cuisineType: 'Other',
+      recipeType: request.recipeType,
+      isHealthy: false,
+      missingIngredients: [],
+      suggestionNote: 'Aucune recette ne correspond aux critères. Essayez de modifier vos préférences.'
+    }
+    return errorRecipe
   }
   
   // Create a copy of the recipe to personalize
@@ -1395,21 +1604,23 @@ export async function generateRecipe(request: RecipeRequest): Promise<Recipe> {
   
   // VÉRIFICATION FINALE CRITIQUE : Si l'utilisateur ne peut pas acheter, la recette NE DOIT PAS avoir d'ingrédients manquants
   if (!request.canPurchase && missingIngredients.length > 0) {
-    console.error(`❌ ERREUR: Recette "${generatedRecipe.name}" retournée avec ingrédients manquants alors que canPurchase=false`)
+    console.error(`❌ ERREUR CRITIQUE: Recette "${generatedRecipe.name}" retournée avec ingrédients manquants alors que canPurchase=false`)
     console.error(`   Ingrédients disponibles: ${request.availableIngredients.join(', ')}`)
     console.error(`   Ingrédients de la recette: ${generatedRecipe.ingredients.join(', ')}`)
     console.error(`   Ingrédients manquants: ${missingIngredients.join(', ')}`)
     
-    // Essayer de trouver une recette qui correspond vraiment
+    // Essayer de trouver une recette qui correspond vraiment dans TOUS les candidats
     const normalizedAvailable = request.availableIngredients.map(normalizeIngredient)
     const matchingRecipes = candidates.filter(recipe => {
       if (recipe.recipeType !== request.recipeType) return false
       if (containsAllergens(recipe, request.allergies)) return false
+      if (!matchesDietaryPreference(recipe, request.dietaryPreference)) return false
       
       const normalizedRecipe = recipe.ingredients.map(normalizeIngredient)
-      return normalizedRecipe.every(recipeIng => 
+      const allMatch = normalizedRecipe.every(recipeIng => 
         normalizedAvailable.some(availIng => ingredientsMatch(recipeIng, availIng))
       )
+      return allMatch
     })
     
     if (matchingRecipes.length > 0) {
@@ -1425,11 +1636,27 @@ export async function generateRecipe(request: RecipeRequest): Promise<Recipe> {
       }
     }
     
-    // Si aucune recette ne correspond, retourner une erreur avec suggestion
-    generatedRecipe.suggestionNote = 
-      `Aucune recette trouvée avec uniquement les ingrédients disponibles (${request.availableIngredients.join(', ')}). ` +
-      `Pour préparer "${generatedRecipe.name}", vous aurez besoin des ingrédients suivants : ${missingIngredients.join(', ')}. ` +
-      `Activez l'option "Je peux acheter" pour voir cette recette.`
+    // Si aucune recette ne correspond, retourner une erreur au lieu de la mauvaise recette
+    const errorRecipe: Recipe = {
+      name: 'Aucune recette trouvée',
+      description: `Aucune recette ne correspond exactement aux ingrédients disponibles : ${request.availableIngredients.join(', ')}`,
+      ingredients: request.availableIngredients,
+      steps: [
+        `Aucune recette ne peut être préparée avec uniquement : ${request.availableIngredients.join(', ')}`,
+        'Essayez d\'ajouter d\'autres ingrédients ou activez l\'option "Je peux acheter" pour voir des suggestions.'
+      ],
+      prepTime: 0,
+      cookTime: 0,
+      servings: 0,
+      calories: 0,
+      estimatedPrice: 0,
+      cuisineType: 'Other',
+      recipeType: request.recipeType,
+      isHealthy: false,
+      missingIngredients: [],
+      suggestionNote: `Aucune recette trouvée avec uniquement : ${request.availableIngredients.join(', ')}. Pour préparer "${generatedRecipe.name}", vous auriez besoin de : ${missingIngredients.join(', ')}. Activez l'option "Je peux acheter" pour voir cette recette.`
+    }
+    return errorRecipe
   }
   
   // Ajouter une note informative si un seul ingrédient est fourni et que des ingrédients supplémentaires sont requis
@@ -1491,14 +1718,29 @@ export async function generateRecipe(request: RecipeRequest): Promise<Recipe> {
           estimatedPrice: 0
         }
       } else {
-        // No recipe found with available ingredients - this shouldn't happen if filtering worked
-        // But as fallback, return the recipe anyway but warn the user
-        console.warn('Warning: Recipe with missing ingredients returned even though canPurchase=false')
-        return {
-          ...generatedRecipe,
+        // No recipe found with available ingredients - CRITICAL ERROR
+        // Return error recipe instead of wrong recipe
+        console.error(`❌ ERREUR CRITIQUE: Aucune recette valide trouvée avec ingrédients: ${request.availableIngredients.join(', ')}`)
+        const errorRecipe: Recipe = {
+          name: 'Aucune recette trouvée',
+          description: `Aucune recette ne correspond exactement aux ingrédients disponibles : ${request.availableIngredients.join(', ')}`,
+          ingredients: request.availableIngredients,
+          steps: [
+            'Aucune recette ne peut être préparée avec uniquement ces ingrédients.',
+            'Essayez d\'ajouter d\'autres ingrédients ou activez l\'option "Je peux acheter" pour voir des suggestions.'
+          ],
+          prepTime: 0,
+          cookTime: 0,
+          servings: 0,
+          calories: 0,
+          estimatedPrice: 0,
+          cuisineType: 'Other',
+          recipeType: request.recipeType,
+          isHealthy: false,
           missingIngredients: [],
-          estimatedPrice: 0
+          suggestionNote: `Aucune recette trouvée avec uniquement : ${request.availableIngredients.join(', ')}. Veuillez ajouter d'autres ingrédients ou activer l'option d'achat.`
         }
+        return errorRecipe
       }
     } else {
       // No missing ingredients - perfect!

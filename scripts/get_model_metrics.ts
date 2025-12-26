@@ -41,7 +41,7 @@ async function getModelMetrics() {
         performance_metrics
       FROM ml_models
       ORDER BY training_date DESC
-    `) as [ModelMetrics[]]
+    `) as any[]
 
     if (models.length === 0) {
       console.log('❌ Aucun modèle trouvé dans la base de données.')
@@ -56,18 +56,18 @@ async function getModelMetrics() {
     console.log('='.repeat(80))
 
     for (const model of models) {
-      const metadata = model.metadata ? JSON.parse(model.metadata as any) : {}
-      const performance = model.performanceMetrics ? JSON.parse(model.performanceMetrics as any) : {}
+      const metadata = model.model_metadata ? JSON.parse(model.model_metadata as any) : {}
+      const performance = model.performance_metrics ? JSON.parse(model.performance_metrics as any) : {}
 
-      console.log(`\n📦 Modèle: ${model.modelName}`)
-      console.log(`   Type: ${model.modelType}`)
-      console.log(`   Version: ${model.modelVersion}`)
-      console.log(`   Date d'entraînement: ${model.trainingDate}`)
-      console.log(`   Taille du dataset: ${model.trainingDataSize} exemples`)
-      console.log(`   Statut: ${model.isActive ? '✅ ACTIF' : '⏸️  INACTIF'}`)
+      console.log(`\n📦 Modèle: ${model.model_name}`)
+      console.log(`   Type: ${model.model_type}`)
+      console.log(`   Version: ${model.model_version}`)
+      console.log(`   Date d'entraînement: ${model.training_date}`)
+      console.log(`   Taille du dataset: ${model.training_data_size} exemples`)
+      console.log(`   Statut: ${model.is_active ? '✅ ACTIF' : '⏸️  INACTIF'}`)
 
       // Métriques de classification
-      if (model.modelType === 'classification') {
+      if (model.model_type === 'classification') {
         console.log('\n📈 Métriques de Classification:')
         console.log('   ┌─────────────────────────────────────────────────────────┐')
         console.log('   │ Métrique          │ Valeur                              │')
@@ -101,7 +101,7 @@ async function getModelMetrics() {
       }
 
       // Métriques de génération
-      if (model.modelType === 'generation') {
+      if (model.model_type === 'generation') {
         console.log('\n📈 Métriques de Génération:')
         console.log('   ┌─────────────────────────────────────────────────────────┐')
         console.log('   │ Métrique          │ Valeur                              │')
@@ -135,11 +135,11 @@ async function getModelMetrics() {
     }
 
     // Résumé des modèles actifs
-    const activeModels = models.filter(m => m.isActive)
+    const activeModels = models.filter(m => m.is_active)
     if (activeModels.length > 0) {
       console.log('\n✅ Modèles Actifs:')
       activeModels.forEach(model => {
-        console.log(`   - ${model.modelName} (${model.modelType})`)
+        console.log(`   - ${model.model_name} (${model.model_type})`)
       })
     }
 

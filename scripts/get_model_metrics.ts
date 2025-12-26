@@ -135,10 +135,10 @@ async function getModelMetrics() {
     }
 
     // Résumé des modèles actifs
-    const activeModels = models.filter(m => m.is_active)
+    const activeModels = models.filter((m: any) => m.is_active)
     if (activeModels.length > 0) {
       console.log('\n✅ Modèles Actifs:')
-      activeModels.forEach(model => {
+      activeModels.forEach((model: any) => {
         console.log(`   - ${model.model_name} (${model.model_type})`)
       })
     }

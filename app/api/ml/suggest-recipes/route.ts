@@ -3,6 +3,8 @@ import { getAuthToken, verifyToken } from '@/lib/auth'
 import db from '@/lib/db'
 import { generateRecipe } from '@/lib/ml/recipeGenerator'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const token = getAuthToken(request)

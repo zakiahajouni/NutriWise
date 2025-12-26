@@ -3,6 +3,8 @@ import { getAuthToken, verifyToken } from '@/lib/auth'
 import db from '@/lib/db'
 import { predictUserProfile } from '@/lib/ml/recipeGenerator'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const token = getAuthToken(request)

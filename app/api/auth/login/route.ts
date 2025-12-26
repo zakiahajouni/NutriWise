@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import db from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json()
@@ -42,10 +44,27 @@ export async function POST(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('Login error:', error)
+    
+    // Check if it's a database connection error
+    if (error?.code === 'ECONNREFUSED' || error?.message?.includes('ECONNREFUSED')) {
       return NextResponse.json(
-        { success: false, message: 'Login error' },
-        { status: 500 }
+        { 
+          success: false, 
+          message: 'Database connection failed. Please ensure MySQL is running.',
+          error: process.env.NODE_ENV === 'development' ? error?.message : undefined
+        },
+        { status: 503 }
       )
+    }
+    
+    return NextResponse.json(
+      { 
+        success: false, 
+        message: 'Login error',
+        error: process.env.NODE_ENV === 'development' ? error?.message : undefined
+      },
+      { status: 500 }
+    )
   }
 }
 

@@ -122,7 +122,8 @@ export async function trainRecommendationModel(
       trainingData,
       validationData,
       epochs,
-      batchSize
+      batchSize,
+      outputSize // Pass number of classes
     )
 
     // Get final metrics

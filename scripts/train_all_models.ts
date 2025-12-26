@@ -4,7 +4,7 @@
  * Run with: npx tsx scripts/train_all_models.ts
  */
 
-import { trainClassificationModel } from '../lib/ml/classificationModel'
+import { trainClassificationModel, trainClassificationModelWithSelection } from '../lib/ml/classificationModel'
 import { trainGenerationModel } from '../lib/ml/generationModel'
 
 async function trainAllModels() {
@@ -12,24 +12,30 @@ async function trainAllModels() {
   console.log('=' .repeat(60))
   
   try {
-    // Step 1: Train Classification Model (Homepage Recommendations)
-    console.log('\n📊 Step 1: Training Classification Model...')
+    // Step 1: Train Classification Model with Model Selection (tests 3 configs)
+    console.log('\n📊 Step 1: Training Classification Model (Testing 3 Configurations)...')
     console.log('-'.repeat(60))
-    const classificationResult = await trainClassificationModel({
+    const classificationResult = await trainClassificationModelWithSelection({
       epochs: 50,
       batchSize: 32,
-      learningRate: 0.001,
-      hiddenLayers: [128, 64, 32],
-      dropout: 0.3,
       validationSplit: 0.2,
     })
     
     if (classificationResult.success) {
-      console.log('✅ Classification Model Training: SUCCESS')
-      console.log(`   Accuracy: ${classificationResult.accuracy?.toFixed(4)}`)
+      console.log('\n✅ Classification Model Training: SUCCESS')
+      console.log(`   Best Model Accuracy: ${classificationResult.accuracy?.toFixed(4)}`)
       console.log(`   Precision: ${classificationResult.precision?.toFixed(4)}`)
       console.log(`   Recall: ${classificationResult.recall?.toFixed(4)}`)
       console.log(`   F1-Score: ${classificationResult.f1Score?.toFixed(4)}`)
+      if (classificationResult.bestModelConfig) {
+        console.log(`   Best Architecture: [${classificationResult.bestModelConfig.hiddenLayers?.join(', ')}]`)
+      }
+      if (classificationResult.allResults) {
+        console.log(`\n   All Models Tested:`)
+        classificationResult.allResults.forEach((result, idx) => {
+          console.log(`     Model ${idx + 1}: Accuracy ${result.accuracy.toFixed(4)} - Architecture [${result.config.hiddenLayers?.join(', ')}]`)
+        })
+      }
     } else {
       console.log('❌ Classification Model Training: FAILED')
       console.log(`   Error: ${classificationResult.message}`)

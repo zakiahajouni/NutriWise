@@ -1,109 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthToken, verifyToken } from '@/lib/auth'
-import { generateRecipe, generateWithTensorFlow } from '@/lib/ml/advancedRecipeGenerator'
+
+interface RecipeRequest {
+  recipeType: 'sweet' | 'savory'
+  availableIngredients: string[]
+  canPurchase: boolean
+  budget: number | null
+  allergies: string[]
+  additionalInfo: string
+  cuisineType: string
+  isHealthy: boolean
+  dietaryPreference?: string
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const token = getAuthToken(request)
-    if (!token) {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    const decoded = verifyToken(token)
-    if (!decoded) {
-      return NextResponse.json(
-        { success: false, message: 'Invalid token' },
-        { status: 401 }
-      )
-    }
-
     const body = await request.json()
-    const {
-      recipeType,
-      availableIngredients,
-      canPurchase,
-      budget,
-      allergies,
-      additionalInfo,
-      cuisineType,
-      isHealthy,
-    } = body
 
-    // Validation
-    if (!recipeType || !availableIngredients || availableIngredients.length === 0) {
-      return NextResponse.json(
-        { success: false, message: 'Missing data' },
-        { status: 400 }
-      )
+    // ✅ 1. Objet source clairement défini avec tous les champs requis
+    const recipeRequest: RecipeRequest = {
+      recipeType: body.recipeType || 'savory',
+      availableIngredients: body.ingredients || body.availableIngredients || [],
+      canPurchase: body.canPurchase ?? false,
+      budget: body.budget ?? null,
+      allergies: body.allergies || [],
+      additionalInfo: body.additionalInfo || '',
+      cuisineType: body.cuisineType || 'Other',
+      isHealthy: body.isHealthy ?? false,
+      dietaryPreference: body.dietaryPreference,
     }
 
-    const recipeRequest = {
-      recipeType,
-      availableIngredients,
-      canPurchase: canPurchase || false,
-      budget: budget || null,
-      allergies: allergies || [],
-      additionalInfo: additionalInfo || '',
-      cuisineType: cuisineType || 'Other',
-      isHealthy: isHealthy !== null ? isHealthy : true,
-    }
+    const { generateRecipe } = await import('@/lib/ml/recipeGenerator')
 
-    // Try to use TensorFlow.js if available (server-side only)
-    let recipe
     try {
-      // Dynamic import of TensorFlow.js only in this API route
-      const tfModule = await import('@/lib/ml/tensorflowModel')
-      const model = await tfModule.loadModelFromDB('recipe_recommendation', 'latest')
-      
-      if (model) {
-        console.log('✅ Using TensorFlow.js model')
-        recipe = await generateWithTensorFlow(model, recipeRequest, tfModule)
-      } else {
-        console.log('⚠️  ML model not available, using fallback system')
-        recipe = await generateRecipe(recipeRequest)
-      }
-    } catch (tfError) {
-      console.log('⚠️  TensorFlow.js error, using fallback system:', tfError)
-      recipe = await generateRecipe(recipeRequest)
-    }
-
-    return NextResponse.json({
-      success: true,
-      recipe,
-    })
-  } catch (error: any) {
-    console.error('Recipe generation error:', error)
-    
-    // Try to generate a fallback recipe with minimal constraints
-    try {
-      const { generateRecipe } = await import('@/lib/ml/recipeGenerator')
-      const fallbackRequest = {
+      const recipe = await generateRecipe(recipeRequest)
+      return NextResponse.json(recipe)
+    } catch (error) {
+      // ✅ 2. Fallback propre et sûr
+      const fallbackRequest: RecipeRequest = {
         ...recipeRequest,
-        cuisineType: 'Other', // Remove cuisine constraint
-        isHealthy: undefined, // Remove health constraint
-        dietaryPreference: undefined, // Remove dietary constraint
+        cuisineType: 'Other',
+        isHealthy: false,
+        dietaryPreference: undefined,
       }
+
       const fallbackRecipe = await generateRecipe(fallbackRequest)
-      
-      return NextResponse.json({
-        success: true,
-        recipe: fallbackRecipe,
-        message: 'Recette générée avec des critères assouplis'
-      })
-    } catch (fallbackError) {
-      // Last resort: return a simple default recipe
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Impossible de générer une recette. Veuillez essayer avec moins de contraintes.',
-          error: process.env.NODE_ENV === 'development' ? error?.message : undefined,
-        },
-        { status: 500 }
-      )
+      return NextResponse.json(fallbackRecipe)
     }
+  } catch (error) {
+    console.error('Error generating recipe:', error)
+    return NextResponse.json(
+      { error: 'Failed to generate recipe' },
+      { status: 500 }
+    )
   }
 }
-

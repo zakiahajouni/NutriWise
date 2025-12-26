@@ -3,7 +3,7 @@
  * Generates personalized recipes based on available ingredients and preferences
  */
 
-import { loadRecipeDatasetFiltered } from './datasetLoader'
+import { loadRecipeDataset, loadRecipeDatasetFiltered } from './datasetLoader'
 import { buildIngredientVocabulary, extractUserRequestFeatures, calculateDatasetStats } from './featureExtractor'
 import { createRecommendationModel, trainModel, saveModelToDB, TrainingData } from './tensorflowModel'
 import { findMissingIngredients, estimateMissingPrice } from './recipeGenerator'
@@ -73,27 +73,27 @@ export async function trainGenerationModel(
     
     console.log(`🏗️  Creating generation model (input: ${inputSize}, output: ${outputSize})...`)
     
-    // For now, use single-task model (recipe selection)
-    // Multi-task can be added later
+    // Use improved architecture for generation
     const model = await createRecommendationModel({
       inputSize,
       outputSize,
-      hiddenLayers: config.hiddenLayers || [256, 128, 64],
-      learningRate: config.learningRate || 0.0005,
-      dropout: config.dropout || 0.3,
+      hiddenLayers: config.hiddenLayers || [512, 256, 128, 64],
+      learningRate: config.learningRate || 0.0003,
+      dropout: config.dropout || 0.35,
     })
     
     // Train model
     console.log('🎯 Training generation model...')
-    const epochs = config.epochs || 100
-    const batchSize = config.batchSize || 32
+    const epochs = config.epochs || 150
+    const batchSize = config.batchSize || 64
     
     const history = await trainModel(
       model,
       trainingData,
       validationData,
       epochs,
-      batchSize
+      batchSize,
+      outputSize // Pass number of classes
     )
     
     // Evaluate on test set
@@ -172,22 +172,36 @@ async function generateTrainingDataForGeneration(
   const labels: number[] = []
   
   // For each recipe, create multiple training examples with different ingredient subsets
+  // Increase examples per recipe for better training
+  const examplesPerRecipe = Math.max(5, Math.floor(8000 / recipes.length))
+  
+  console.log(`📊 Generating ${examplesPerRecipe} examples per recipe for generation model...`)
+  
   for (const recipe of recipes) {
-    // Create 3-5 examples per recipe with different available ingredient combinations
-    const numExamples = 3 + Math.floor(Math.random() * 3)
-    
-    for (let i = 0; i < numExamples; i++) {
-      // Randomly select 40-80% of ingredients as "available"
-      const availableRatio = 0.4 + Math.random() * 0.4
+    for (let i = 0; i < examplesPerRecipe; i++) {
+      // Vary the ratio of available ingredients (30-90%)
+      const availableRatio = 0.3 + Math.random() * 0.6
       const numAvailable = Math.max(1, Math.floor(recipe.ingredients.length * availableRatio))
       
       // Randomly select available ingredients
       const shuffled = [...recipe.ingredients].sort(() => Math.random() - 0.5)
       const availableIngredients = shuffled.slice(0, numAvailable)
       
+      // Sometimes add noise ingredients from other recipes (10% chance)
+      let finalIngredients = availableIngredients
+      if (Math.random() < 0.1 && recipes.length > 1) {
+        const otherRecipe = recipes[Math.floor(Math.random() * recipes.length)]
+        if (otherRecipe.id !== recipe.id && otherRecipe.ingredients.length > 0) {
+          const noiseIngredient = otherRecipe.ingredients[Math.floor(Math.random() * otherRecipe.ingredients.length)]
+          if (!finalIngredients.includes(noiseIngredient)) {
+            finalIngredients = [...finalIngredients, noiseIngredient]
+          }
+        }
+      }
+      
       // Extract features
       const userFeatures = extractUserRequestFeatures(
-        availableIngredients,
+        finalIngredients,
         recipe.recipeType,
         recipe.cuisineType,
         recipe.isHealthy,
@@ -267,7 +281,7 @@ async function evaluateGenerationModel(
     // Get predicted recipe
     const startIdx = i * numRecipes
     const endIdx = startIdx + numRecipes
-    const scores = predictionsArray.slice(startIdx, endIdx)
+    const scores = predictionsArray.slice(startIdx, endIdx) as number[]
     const predictedRecipeIndex = scores.indexOf(Math.max(...scores))
     const predictedRecipe = recipes[predictedRecipeIndex]
     

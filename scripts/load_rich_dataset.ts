@@ -24,7 +24,7 @@ async function loadDataset() {
         // Check if recipe already exists
         const [existing] = await db.execute(
           'SELECT id FROM recipe_templates WHERE name = ? AND cuisine_type = ?',
-          [recipe.name, recipe.cuisineType]
+          [recipe.name, recipe.cuisine]
         ) as any[]
         
         if (existing && existing.length > 0) {
@@ -40,19 +40,19 @@ async function loadDataset() {
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             recipe.name,
-            recipe.description,
+            recipe.description || '',
             JSON.stringify(recipe.ingredients),
             JSON.stringify(recipe.steps),
-            recipe.prepTime,
-            recipe.cookTime,
-            recipe.servings,
-            recipe.calories,
-            recipe.estimatedPrice,
-            recipe.cuisineType,
+            recipe.prepTime || 0,
+            recipe.cookTime || 0,
+            recipe.servings || 4,
+            recipe.calories || 0,
+            recipe.estimatedPrice || 0,
+            recipe.cuisine || 'Other',
             recipe.recipeType,
             recipe.isHealthy ? 1 : 0,
-            JSON.stringify(recipe.tags),
-            recipe.difficulty
+            JSON.stringify(recipe.tags || []),
+            recipe.difficulty || 'medium'
           ]
         )
         

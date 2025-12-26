@@ -1,9 +1,13 @@
 /**
  * Dynamic dataset loader from database
  * Allows loading a huge dataset of recipes from MySQL
+ * Falls back to JSON file if database is empty
  */
 
 import db from '@/lib/db'
+import fs from 'fs'
+import path from 'path'
+import { generateRichDataset } from './datasetGenerator'
 
 export interface RecipeTemplate {
   id: number
@@ -25,6 +29,7 @@ export interface RecipeTemplate {
 
 /**
  * Loads all recipes from the database
+ * Falls back to JSON file if database is empty
  */
 export async function loadRecipeDataset(): Promise<RecipeTemplate[]> {
   try {
@@ -33,6 +38,12 @@ export async function loadRecipeDataset(): Promise<RecipeTemplate[]> {
        servings, calories, estimated_price, cuisine_type, recipe_type, is_healthy, tags, difficulty
        FROM recipe_templates`
     ) as any[]
+
+    // Si la base de données est vide, charger depuis le fichier JSON
+    if (!rows || rows.length === 0) {
+      console.log('⚠️  Base de données vide, chargement depuis le fichier JSON...')
+      return await loadFromJSONFile()
+    }
 
     return rows.map((row: any) => ({
       id: row.id,
@@ -52,7 +63,46 @@ export async function loadRecipeDataset(): Promise<RecipeTemplate[]> {
       difficulty: row.difficulty || 'medium',
     }))
   } catch (error) {
-    console.error('Error loading dataset:', error)
+    console.error('Error loading dataset from database:', error)
+    console.log('⚠️  Tentative de chargement depuis le fichier JSON...')
+    return await loadFromJSONFile()
+  }
+}
+
+/**
+ * Loads recipes from JSON file as fallback
+ */
+async function loadFromJSONFile(): Promise<RecipeTemplate[]> {
+  try {
+    const recipes = generateRichDataset()
+    
+    if (recipes.length === 0) {
+      console.error('❌ Aucune recette trouvée dans le fichier JSON')
+      return []
+    }
+
+    console.log(`✅ ${recipes.length} recettes chargées depuis le fichier JSON`)
+    
+    // Convertir le format du JSON vers RecipeTemplate
+    return recipes.map((recipe, index) => ({
+      id: recipe.id || index + 1,
+      name: recipe.name,
+      description: recipe.description || '',
+      ingredients: recipe.ingredients || [],
+      steps: recipe.steps || [],
+      prepTime: recipe.prepTime || 0,
+      cookTime: recipe.cookTime || 0,
+      servings: recipe.servings || 4,
+      calories: recipe.calories || 0,
+      estimatedPrice: recipe.estimatedPrice || 0,
+      cuisineType: recipe.cuisine || 'Other',
+      recipeType: recipe.recipeType,
+      isHealthy: recipe.isHealthy || false,
+      tags: recipe.tags || [],
+      difficulty: recipe.difficulty || 'medium',
+    }))
+  } catch (error) {
+    console.error('❌ Erreur lors du chargement depuis le fichier JSON:', error)
     return []
   }
 }

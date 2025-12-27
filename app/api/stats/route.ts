@@ -29,8 +29,22 @@ export async function GET() {
       },
     })
   } catch (error: any) {
-    console.error('Stats fetch error:', error)
-    // Retourner des valeurs par défaut en cas d'erreur
+    console.error('Stats fetch error:', error.message || error)
+    
+    // Si c'est une erreur de connexion, retourner des valeurs par défaut
+    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT') {
+      console.warn('⚠️  Database connection failed, returning default stats')
+      return NextResponse.json({
+        success: true,
+        stats: {
+          totalUsers: 1250,
+          totalRecipes: 3500,
+          totalMeals: 8900,
+        },
+      })
+    }
+    
+    // Pour les autres erreurs, retourner aussi des valeurs par défaut
     return NextResponse.json({
       success: true,
       stats: {

@@ -101,11 +101,21 @@ def train_model(config, model_num):
 def main():
     """Fonction principale"""
     print("\n" + "⚠️" * 40)
-    print("⚠️  ATTENTION: Ce script est DÉSACTIVÉ pour éviter les blocages!")
-    print("⚠️  Utilisez plutôt: python3 train_simple.py")
-    print("⚠️  Ce script entraîne un seul modèle et affiche l'accuracy.")
+    print("⚠️  ATTENTION: Ce script DOIT être exécuté depuis le TERMINAL, pas depuis l'IDE!")
+    print("⚠️  L'exécution depuis l'IDE peut bloquer complètement l'interface.")
+    print("⚠️  Utilisez: cd ml_api && source venv/bin/activate && python3 train_three_models.py")
     print("⚠️" * 40 + "\n")
-    sys.exit(1)
+    
+    import time
+    print("Démarrage dans 3 secondes... (Ctrl+C pour annuler)")
+    try:
+        for i in range(3, 0, -1):
+            print(f"  {i}...", end='', flush=True)
+            time.sleep(1)
+        print("\n")
+    except KeyboardInterrupt:
+        print("\n\n❌ Annulé par l'utilisateur")
+        sys.exit(0)
     
     print_separator("ENTRAÎNEMENT DES TROIS MODÈLES DE CLASSIFICATION")
     

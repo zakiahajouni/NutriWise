@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthToken, verifyToken } from '@/lib/auth'
 import db from '@/lib/db'
-import { suggestRecipes } from '@/lib/ml_api_client'
+import { suggestRecipes, SuggestRecipesResponse } from '@/lib/ml_api_client'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     try {
       // Appeler l'API Python ML
-      const result = await suggestRecipes(decoded.userId, profile)
+      const result: SuggestRecipesResponse = await suggestRecipes(decoded.userId, profile)
       
       return NextResponse.json({
         success: true,

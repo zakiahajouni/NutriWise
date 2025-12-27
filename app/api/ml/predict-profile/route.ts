@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthToken, verifyToken } from '@/lib/auth'
-import { predictProfile } from '@/lib/ml_api_client'
+import { predictProfile, PredictProfileResponse } from '@/lib/ml_api_client'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     try {
       // Appeler l'API Python ML
-      const result = await predictProfile(decoded.userId)
+      const result: PredictProfileResponse = await predictProfile(decoded.userId)
       
       return NextResponse.json({
         success: true,

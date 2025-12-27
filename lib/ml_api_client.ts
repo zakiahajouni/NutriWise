@@ -37,23 +37,84 @@ export async function callMLAPI<T>(
   }
 }
 
-export async function predictProfile(userId: number) {
-  return callMLAPI('/api/ml/predict-profile', 'POST', { userId })
+export interface PredictProfileResponse {
+  success?: boolean
+  predictedPreferences?: {
+    preferredCuisines?: string[]
+    preferredTypes?: string[]
+  }
+  recommendedRecipes?: Array<{
+    id: number
+    name: string
+    description?: string
+    cuisineType?: string
+    recipeType?: string
+  }>
+  error?: string
 }
 
-export async function suggestRecipes(userId: number, profile?: any) {
-  return callMLAPI('/api/ml/suggest-recipes', 'POST', { userId, profile })
+export async function predictProfile(userId: number): Promise<PredictProfileResponse> {
+  return callMLAPI<PredictProfileResponse>('/api/ml/predict-profile', 'POST', { userId })
 }
 
-export async function generateMeal(request: any) {
-  return callMLAPI('/api/ml/generate-meal', 'POST', request)
+export interface SuggestRecipesResponse {
+  success: boolean
+  suggestions: Array<{
+    id: number
+    name: string
+    description?: string
+    cuisineType?: string
+    recipeType?: string
+    score?: number
+    matchReason?: string
+  }>
+  message?: string
 }
 
-export async function trainClassification() {
-  return callMLAPI('/api/ml/train-classification', 'POST')
+export async function suggestRecipes(userId: number, profile?: any): Promise<SuggestRecipesResponse> {
+  return callMLAPI<SuggestRecipesResponse>('/api/ml/suggest-recipes', 'POST', { userId, profile })
 }
 
-export async function trainGeneration() {
-  return callMLAPI('/api/ml/train-generation', 'POST')
+export interface GenerateMealResponse {
+  name: string
+  description?: string
+  ingredients: string[]
+  steps: string[]
+  prepTime?: number
+  cookTime?: number
+  servings?: number
+  calories?: number
+  estimatedPrice?: number
+  missingIngredients?: string[]
+  cuisineType?: string
+  recipeType?: string
+  isHealthy?: boolean
+  error?: string
+}
+
+export async function generateMeal(request: any): Promise<GenerateMealResponse> {
+  return callMLAPI<GenerateMealResponse>('/api/ml/generate-meal', 'POST', request)
+}
+
+export interface TrainModelResponse {
+  success: boolean
+  message?: string
+  modelId?: number
+  metrics?: {
+    accuracy?: number
+    precision?: number
+    recall?: number
+    f1Score?: number
+    loss?: number
+  }
+  error?: string
+}
+
+export async function trainClassification(): Promise<TrainModelResponse> {
+  return callMLAPI<TrainModelResponse>('/api/ml/train-classification', 'POST')
+}
+
+export async function trainGeneration(): Promise<TrainModelResponse> {
+  return callMLAPI<TrainModelResponse>('/api/ml/train-generation', 'POST')
 }
 

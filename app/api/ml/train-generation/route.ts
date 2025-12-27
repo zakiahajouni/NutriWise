@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthToken, verifyToken } from '@/lib/auth'
-import { trainGeneration } from '@/lib/ml_api_client'
+import { trainGeneration, TrainModelResponse } from '@/lib/ml_api_client'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Appeler l'API Python ML pour l'entraînement
-    const result = await trainGeneration()
+    const result: TrainModelResponse = await trainGeneration()
 
     return NextResponse.json({
       success: result.success || true,

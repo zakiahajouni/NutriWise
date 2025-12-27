@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { generateMeal } from '@/lib/ml_api_client'
+import { generateMeal, GenerateMealResponse } from '@/lib/ml_api_client'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     try {
       // Appeler l'API Python ML
-      const recipe = await generateMeal(recipeRequest)
+      const recipe: GenerateMealResponse = await generateMeal(recipeRequest)
       return NextResponse.json(recipe)
     } catch (error: any) {
       console.error('Error calling ML API:', error)

@@ -19,8 +19,6 @@ const pool = mysql.createPool({
   } : undefined,
   // Timeout pour les connexions
   connectTimeout: 10000,
-  // Retry logic
-  acquireTimeout: 10000,
 });
 
 // Test de connexion au démarrage (en mode développement uniquement)

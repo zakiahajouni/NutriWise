@@ -227,10 +227,22 @@ export default function GenerateRecipePage() {
 
       const data = await res.json()
 
-      if (res.ok && data.success) {
-        setGeneratedRecipe(data.recipe)
+      // L'API retourne directement les données de la recette ou un objet avec success/recipe
+      if (res.ok) {
+        if (data.success && data.recipe) {
+          // Format avec wrapper
+          setGeneratedRecipe(data.recipe)
+        } else if (data.name) {
+          // Format direct (données de la recette directement)
+          setGeneratedRecipe(data)
+        } else if (data.error) {
+          // Erreur dans la réponse
+          setError(data.message || data.error || 'Error generating recipe')
+        } else {
+          setError('Invalid response format')
+        }
       } else {
-        setError(data.message || 'Error generating recipe')
+        setError(data.message || data.error || 'Error generating recipe')
       }
     } catch (err) {
       setError('An error occurred. Please try again.')

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthToken, verifyToken } from '@/lib/auth'
-import { trainClassificationModel } from '@/lib/ml/classificationModel'
+import { trainClassification } from '@/lib/ml_api_client'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,38 +22,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = await request.json().catch(() => ({}))
-    const config = {
-      epochs: body.epochs || 50,
-      batchSize: body.batchSize || 32,
-      learningRate: body.learningRate || 0.001,
-      hiddenLayers: body.hiddenLayers || [128, 64, 32],
-      dropout: body.dropout || 0.3,
-      validationSplit: body.validationSplit || 0.2,
-    }
+    // Appeler l'API Python ML pour l'entraînement
+    const result = await trainClassification()
 
-    // Launch training
-    const result = await trainClassificationModel(config)
-
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        message: result.message,
-        modelId: result.modelId,
-        accuracy: result.accuracy,
-        precision: result.precision,
-        recall: result.recall,
-        f1Score: result.f1Score,
-      })
-    } else {
-      return NextResponse.json(
-        {
-          success: false,
-          message: result.message,
-        },
-        { status: 400 }
-      )
-    }
+    return NextResponse.json({
+      success: result.success || true,
+      message: result.message || 'Training started',
+      modelId: result.modelId,
+    })
   } catch (error: any) {
     console.error('Classification training error:', error)
     return NextResponse.json(

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { generateMeal } from '@/lib/ml_api_client'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    // ✅ 1. Objet source clairement défini avec tous les champs requis
+    // Préparer la requête pour l'API Python
     const recipeRequest: RecipeRequest = {
       recipeType: body.recipeType || 'savory',
       availableIngredients: body.ingredients || body.availableIngredients || [],
@@ -31,22 +32,22 @@ export async function POST(request: NextRequest) {
       dietaryPreference: body.dietaryPreference,
     }
 
-    const { generateRecipe } = await import('@/lib/ml/recipeGenerator')
-
     try {
-      const recipe = await generateRecipe(recipeRequest)
+      // Appeler l'API Python ML
+      const recipe = await generateMeal(recipeRequest)
       return NextResponse.json(recipe)
-    } catch (error) {
-      // ✅ 2. Fallback propre et sûr
-      const fallbackRequest: RecipeRequest = {
-        ...recipeRequest,
-        cuisineType: 'Other',
-        isHealthy: false,
-        dietaryPreference: undefined,
-      }
-
-      const fallbackRecipe = await generateRecipe(fallbackRequest)
-      return NextResponse.json(fallbackRecipe)
+    } catch (error: any) {
+      console.error('Error calling ML API:', error)
+      
+      // Fallback si l'API Python n'est pas disponible
+      return NextResponse.json(
+        { 
+          error: 'ML service unavailable',
+          message: 'The ML service is currently unavailable. Please try again later.',
+          fallback: true
+        },
+        { status: 503 }
+      )
     }
   } catch (error) {
     console.error('Error generating recipe:', error)

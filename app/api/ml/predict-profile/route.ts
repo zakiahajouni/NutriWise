@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthToken, verifyToken } from '@/lib/auth'
-import db from '@/lib/db'
-import { predictUserProfile } from '@/lib/ml/recipeGenerator'
+import { predictProfile } from '@/lib/ml_api_client'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,35 +22,26 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get user profile from DB
-    const [profiles] = await db.execute(
-      `SELECT age, gender, dietary_preference, allergies, health_conditions 
-       FROM user_profiles WHERE user_id = ?`,
-      [decoded.userId]
-    ) as any[]
-
-    if (!profiles || profiles.length === 0) {
+    try {
+      // Appeler l'API Python ML
+      const result = await predictProfile(decoded.userId)
+      
+      return NextResponse.json({
+        success: true,
+        profile: result,
+      })
+    } catch (error: any) {
+      console.error('Error calling ML API:', error)
+      
+      // Fallback si l'API Python n'est pas disponible
       return NextResponse.json(
-        { success: false, message: 'User profile not found' },
-        { status: 404 }
+        {
+          success: false,
+          message: 'ML service unavailable. Please try again later.',
+        },
+        { status: 503 }
       )
     }
-
-    const profile = profiles[0]
-
-    // Predict profile with ML model
-    const predictedProfile = predictUserProfile({
-      age: profile.age,
-      gender: profile.gender,
-      dietaryPreference: profile.dietary_preference,
-      allergies: profile.allergies ? JSON.parse(profile.allergies) : [],
-      healthConditions: profile.health_conditions ? JSON.parse(profile.health_conditions) : [],
-    })
-
-    return NextResponse.json({
-      success: true,
-      profile: predictedProfile,
-    })
   } catch (error: any) {
     console.error('Erreur prédiction profil:', error)
     return NextResponse.json(

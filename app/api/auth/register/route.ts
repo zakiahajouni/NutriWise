@@ -83,6 +83,35 @@ export async function POST(request: NextRequest) {
     // Update statistics
     await db.execute('UPDATE site_stats SET total_users = total_users + 1')
 
+    // Synchroniser avec l'API ML Python (fichier JSON statique)
+    try {
+      const mlApiUrl = process.env.ML_API_URL || 'http://localhost:5000'
+      await fetch(`${mlApiUrl}/api/ml/sync-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          email,
+          profile: {
+            age: parseInt(age),
+            gender,
+            activity_level: activityLevel,
+            dietary_preference: dietaryPreference,
+            allergies: allergies || [],
+            health_conditions: healthConditions || [],
+          },
+        }),
+      }).catch((err) => {
+        // Ne pas bloquer l'inscription si l'API ML n'est pas disponible
+        console.warn('Failed to sync user to ML API:', err.message)
+      })
+    } catch (error: any) {
+      // Ne pas bloquer l'inscription si la synchronisation échoue
+      console.warn('Failed to sync user to ML API:', error.message)
+    }
+
     // Generate simple token (in a real project, use JWT)
     const token = Buffer.from(`${userId}:${email}`).toString('base64')
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthToken, verifyToken } from '@/lib/auth'
 import db from '@/lib/db'
-import { generateRecipe } from '@/lib/ml/recipeGenerator'
+import { suggestRecipes } from '@/lib/ml_api_client'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,95 +23,33 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get user profile
+    // Get user profile from database
     const [profiles] = await db.execute(
       `SELECT age, gender, dietary_preference, allergies, health_conditions, activity_level
        FROM user_profiles WHERE user_id = ?`,
       [decoded.userId]
     ) as any[]
 
-    if (!profiles || profiles.length === 0) {
+    const profile = profiles && profiles.length > 0 ? profiles[0] : null
+
+    try {
+      // Appeler l'API Python ML
+      const result = await suggestRecipes(decoded.userId, profile)
+      
+      return NextResponse.json({
+        success: true,
+        suggestions: result.suggestions || []
+      })
+    } catch (error: any) {
+      console.error('Error calling ML API:', error)
+      
+      // Fallback si l'API Python n'est pas disponible
       return NextResponse.json({
         success: true,
         suggestions: [],
-        message: 'No profile found. Please complete your profile to get personalized suggestions.'
+        message: 'ML service unavailable. Please try again later.'
       })
     }
-
-    const profile = profiles[0]
-    const allergies = profile.allergies ? JSON.parse(profile.allergies) : []
-    const dietaryPreference = profile.dietary_preference || 'normal'
-    
-    // Determine if user prefers healthy recipes
-    const isHealthy = dietaryPreference === 'healthy' || 
-                     dietaryPreference === 'vegetarian' ||
-                     dietaryPreference === 'vegan'
-
-    // Generate suggestions for both sweet and savory recipes
-    const suggestions = []
-    const usedRecipeNames = new Set<string>()
-    
-    // Generate 2 savory suggestions (try to get different ones)
-    for (let i = 0; i < 2; i++) {
-      let attempts = 0
-      let savoryRecipe
-      
-      do {
-        const savoryRequest = {
-          recipeType: 'savory' as const,
-          availableIngredients: [], // Empty - we want full recipe suggestions
-          canPurchase: true,
-          budget: null,
-          allergies: allergies,
-          additionalInfo: i === 1 ? 'different recipe' : '', // Hint for variety
-          cuisineType: 'Other', // Let ML decide
-          isHealthy: isHealthy,
-          dietaryPreference: dietaryPreference // CRITICAL: Pass dietary preference
-        }
-        
-        savoryRecipe = await generateRecipe(savoryRequest)
-        attempts++
-        
-        // If we've tried 5 times and still get duplicates, break
-        if (attempts >= 5) break
-      } while (usedRecipeNames.has(savoryRecipe.name) && attempts < 5)
-      
-      if (savoryRecipe && !usedRecipeNames.has(savoryRecipe.name)) {
-        usedRecipeNames.add(savoryRecipe.name)
-        suggestions.push({
-          ...savoryRecipe,
-          type: 'savory',
-          matchReason: getMatchReason(profile, savoryRecipe)
-        })
-      }
-    }
-
-    // Generate 1 sweet suggestion
-    const sweetRequest = {
-      recipeType: 'sweet' as const,
-      availableIngredients: [],
-      canPurchase: true,
-      budget: null,
-      allergies: allergies,
-      additionalInfo: '',
-      cuisineType: 'Other',
-      isHealthy: isHealthy,
-      dietaryPreference: dietaryPreference // CRITICAL: Pass dietary preference
-    }
-    
-    const sweetRecipe = await generateRecipe(sweetRequest)
-    if (!usedRecipeNames.has(sweetRecipe.name)) {
-      suggestions.push({
-        ...sweetRecipe,
-        type: 'sweet',
-        matchReason: getMatchReason(profile, sweetRecipe)
-      })
-    }
-
-    return NextResponse.json({
-      success: true,
-      suggestions: suggestions
-    })
   } catch (error: any) {
     console.error('Error generating recipe suggestions:', error)
     return NextResponse.json(

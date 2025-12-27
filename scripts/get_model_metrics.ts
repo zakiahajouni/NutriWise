@@ -155,3 +155,4 @@ async function getModelMetrics() {
 // Exécuter le script
 getModelMetrics()
 
+

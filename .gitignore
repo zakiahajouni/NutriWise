@@ -33,3 +33,40 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# ML Data files (trop volumineux)
+ml_api/data.json
+data/recipes_dataset.json
+*.json.bak
+
+# Images générées
+images/
+*.png
+*.jpg
+*.jpeg
+!public/*.png
+!public/*.jpg
+!public/*.jpeg
+
+# Logs
+*.log
+*.pid
+training_*.log
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+
